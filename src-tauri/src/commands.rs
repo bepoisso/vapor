@@ -8,8 +8,10 @@ use tauri::{AppHandle, Manager, State};
 
 use crate::error::{CommandError, CommandResult};
 use crate::library::{self, service::LibraryService};
-use crate::model::{Game, Profile, SmartShelf};
+use crate::model::{AppId, Game, Profile, SmartShelf};
+use crate::sessions::GameSessions;
 use crate::startup::{self, FrontendMarks, ProcessStart};
+use crate::steam::client::SteamAction;
 
 /// Static information about the running build.
 #[derive(Debug, Clone, Serialize, Type)]
@@ -55,6 +57,38 @@ pub async fn get_library(app: AppHandle) -> CommandResult<Vec<Game>> {
 #[specta::specta]
 pub async fn get_profile(app: AppHandle) -> CommandResult<Profile> {
     with_library(app, LibraryService::profile).await
+}
+
+/// Asks Steam to launch a game (starting Steam silently in the tray if needed).
+#[tauri::command]
+#[specta::specta]
+pub async fn launch_game(app: AppHandle, app_id: AppId) -> CommandResult<()> {
+    request_steam(app, SteamAction::Launch, app_id).await
+}
+
+/// Asks Steam to install a game. Steam shows its own install dialog (drive, size).
+#[tauri::command]
+#[specta::specta]
+pub async fn install_game(app: AppHandle, app_id: AppId) -> CommandResult<()> {
+    request_steam(app, SteamAction::Install, app_id).await
+}
+
+async fn request_steam(app: AppHandle, action: SteamAction, app_id: AppId) -> CommandResult<()> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<GameSessions>().request(action, app_id)
+    })
+    .await
+    .map_err(|error| CommandError {
+        message: error.to_string(),
+    })?
+    .map_err(CommandError::from)
+}
+
+/// The game Steam reports as running, if any. Changes arrive as `RunningGameChanged` events.
+#[tauri::command]
+#[specta::specta]
+pub async fn get_running_game(sessions: State<'_, GameSessions>) -> CommandResult<Option<AppId>> {
+    Ok(sessions.running_game())
 }
 
 #[tauri::command]

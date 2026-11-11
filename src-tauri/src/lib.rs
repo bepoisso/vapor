@@ -6,10 +6,12 @@ mod error;
 mod images;
 mod library;
 mod model;
+mod sessions;
 mod startup;
 mod steam;
 
 use library::service::{LibraryService, LibraryUpdated};
+use sessions::{GameSessions, RunningGameChanged};
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
 use tauri_specta::{Builder, collect_commands, collect_events};
@@ -26,10 +28,13 @@ fn specta_builder() -> Builder<tauri::Wry> {
             commands::app_info,
             commands::get_library,
             commands::get_profile,
+            commands::get_running_game,
+            commands::install_game,
+            commands::launch_game,
             commands::list_shelves,
             commands::report_startup,
         ])
-        .events(collect_events![LibraryUpdated])
+        .events(collect_events![LibraryUpdated, RunningGameChanged])
 }
 
 #[cfg(any(debug_assertions, test))]
@@ -74,6 +79,7 @@ pub fn run() {
         )
         .manage(process_start)
         .manage(LibraryService::new(cache_dir))
+        .manage(GameSessions::new())
         .register_asynchronous_uri_scheme_protocol(images::SCHEME, |ctx, request, responder| {
             let app = ctx.app_handle().clone();
             tauri::async_runtime::spawn_blocking(move || {
@@ -94,6 +100,7 @@ pub fn run() {
         .setup(move |app| {
             builder.mount_events(app);
             LibraryService::start_background(app.handle().clone(), &app.state::<LibraryService>());
+            GameSessions::watch_running_game(app.handle().clone());
             Ok(())
         })
         .run(context)

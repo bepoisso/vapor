@@ -1,0 +1,67 @@
+/* Busy states keep the accent look (it is still the primary action, just not clickable). */
+.hero:disabled,
+.round:disabled {
+  cursor: default;
+}
+
+.hero[data-state="running"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.round {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.round[data-state="running"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* "Playing": a pulsing dot. */
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1.6s var(--ease-out) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+}
+
+/* "Launching…": a small ring spinner. */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

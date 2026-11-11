@@ -1,6 +1,7 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { create } from "zustand";
 import { commands, events, type Game, type Profile, type SmartShelf } from "@/lib/bindings";
+import { errorMessage } from "@/lib/errors";
 import { markLibraryLoaded } from "@/lib/startup";
 import { withSyntheticGames } from "./synthetic";
 
@@ -16,12 +17,6 @@ interface LibraryState {
   load: () => Promise<void>;
   /** Background reload after the backend reported a change; keeps the current data on failure. */
   reload: () => Promise<void>;
-}
-
-function errorMessage(error: unknown): string {
-  if (typeof error === "string") return error;
-  if (error && typeof error === "object" && "message" in error) return String(error.message);
-  return "Unknown error";
 }
 
 async function fetchLibrary() {

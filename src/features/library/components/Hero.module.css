@@ -77,3 +77,9 @@
   font-size: var(--fs-13);
   color: var(--text-on-image);
 }
+
+.error {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-on-image);
+}

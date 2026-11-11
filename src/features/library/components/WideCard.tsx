@@ -1,8 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Play } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import type { Game } from "@/lib/bindings";
-import { playGame } from "../actions";
+import { PlayButton } from "./PlayButton";
 import styles from "./WideCard.module.css";
 
 interface WideCardProps {
@@ -11,7 +9,6 @@ interface WideCardProps {
 
 /** Banner card (mood suggestions). Click = game page; round button = Play. */
 export function WideCard({ game }: WideCardProps) {
-  const { t } = useTranslation();
   const subtitle = [game.genre, ...game.modes].filter(Boolean).join(" · ");
 
   return (
@@ -26,14 +23,7 @@ export function WideCard({ game }: WideCardProps) {
           {subtitle && <span className={styles.subtitle}>{subtitle}</span>}
         </span>
       </Link>
-      <button
-        type="button"
-        className={styles.play}
-        aria-label={t("card.play", { name: game.name })}
-        onClick={() => playGame(game.appId)}
-      >
-        <Play size={13} fill="currentColor" strokeWidth={0} aria-hidden="true" />
-      </button>
+      <PlayButton game={game} variant="round" />
     </article>
   );
 }

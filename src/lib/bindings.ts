@@ -15,6 +15,12 @@ export const commands = {
 	getLibrary: () => __TAURI_INVOKE<Game[]>("get_library"),
 	/**  The Steam account whose library is shown. */
 	getProfile: () => __TAURI_INVOKE<Profile>("get_profile"),
+	/**  The game Steam reports as running, if any. Changes arrive as `RunningGameChanged` events. */
+	getRunningGame: () => __TAURI_INVOKE<number | null>("get_running_game"),
+	/**  Asks Steam to install a game. Steam shows its own install dialog (drive, size). */
+	installGame: (appId: number) => __TAURI_INVOKE<null>("install_game", { appId }),
+	/**  Asks Steam to launch a game (starting Steam silently in the tray if needed). */
+	launchGame: (appId: number) => __TAURI_INVOKE<null>("launch_game", { appId }),
 	listShelves: () => __TAURI_INVOKE<SmartShelf[]>("list_shelves"),
 	/**  Receives the frontend's startup marks (see `startup.rs`). No-op unless tracing is enabled. */
 	reportStartup: (marks: FrontendMarks) => __TAURI_INVOKE<null>("report_startup", { marks }),
@@ -23,6 +29,7 @@ export const commands = {
 /** Events */
 export const events = {
 	libraryUpdated: makeEvent<LibraryUpdated, LibraryUpdated>("library-updated"),
+	runningGameChanged: makeEvent<RunningGameChanged, RunningGameChanged>("running-game-changed"),
 };
 
 /* Types */
@@ -120,6 +127,11 @@ export type Rule = {
 };
 
 export type RuleNode = Condition | Rule;
+
+/**  Emitted when the game Steam reports as running changes (`null`: none). */
+export type RunningGameChanged = {
+	appId: number | null,
+};
 
 export type SmartShelf = {
 	id: string,
