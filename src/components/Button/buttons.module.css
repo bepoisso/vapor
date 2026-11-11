@@ -1,0 +1,93 @@
+/* Button variants from docs/DESIGN_SYSTEM.md. Apply `base` + one variant. */
+
+.base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+/* Large: hero actions */
+.primary,
+.ghost {
+  height: 46px;
+  padding: 0 22px;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-14);
+}
+
+.primary {
+  padding: 0 26px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--fs-15);
+  font-weight: 700;
+}
+
+.ghost {
+  background: var(--ghost);
+  color: var(--text-hover);
+}
+
+.ghost:hover {
+  background: var(--ghost-hover);
+}
+
+/* Small: toolbar actions */
+.small,
+.smallAccent,
+.smallQuiet {
+  height: 32px;
+  padding: 0 12px;
+  gap: 6px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-12);
+  font-weight: 500;
+}
+
+.small {
+  border: 1px solid var(--border-strong);
+  background: none;
+  color: var(--text-2);
+}
+
+.small:hover {
+  border-color: var(--accent);
+}
+
+.smallAccent {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+
+.smallQuiet {
+  background: var(--surface-quiet);
+  color: var(--text-2);
+}
+
+.smallQuiet:hover {
+  color: var(--text-hover);
+}
+
+.dashed {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-dashed);
+  background: none;
+  color: var(--text-2);
+  font-size: var(--fs-13);
+}
+
+.dashed:hover {
+  border-color: var(--accent);
+  color: var(--text-hover);
+}

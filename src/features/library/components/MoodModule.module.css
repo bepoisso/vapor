@@ -1,0 +1,60 @@
+.mood {
+  margin: var(--section-gap) var(--page-x) 0;
+  border-radius: var(--radius-2xl);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.icon {
+  color: var(--accent);
+}
+
+.pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: 8px;
+}
+
+.pill {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text-on-image);
+  font-weight: 600;
+  font-size: var(--fs-13);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.pill:hover {
+  border-color: var(--accent);
+}
+
+.pill[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-muted);
+}

@@ -20,6 +20,8 @@ Vapor: an open-source desktop client for Steam (library browsing + game launchin
 ## Commands
 - `pnpm tauri dev` run the app · `pnpm test` · `pnpm lint` · `pnpm typecheck` · `pnpm format`
 - In `src-tauri/`: `cargo test` · `cargo clippy --all-targets -- -D warnings` · `cargo fmt`
+- `pnpm compare:mockup`: screenshots the real app next to `mockups/library.html` (same engine, 1440 px) into `artifacts/compare/`.
+- `pnpm perf:library [games] [--release]`: scroll smoothness and interaction latency with a synthetic library. `pnpm perf:startup`: startup stages of the release build. Build the release first with `pnpm tauri build --no-bundle`.
 
 ## Performance budgets (checked at the end of every phase)
 - Window visible with the library rendered: **< 300 ms** from Vapor's cache.

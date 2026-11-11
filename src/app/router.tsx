@@ -42,12 +42,27 @@ const gameRoute = createRoute({
   component: () => <PlaceholderPage titleKey="placeholder.game" />,
 });
 
+const historyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/history",
+  component: () => <PlaceholderPage titleKey="placeholder.history" />,
+});
+
+/** "See all" for a smart shelf. Placeholder until the shelf page is designed. */
+const shelfRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/shelf/$shelfId",
+  component: () => <PlaceholderPage titleKey="placeholder.shelf" />,
+});
+
 const routeTree = rootRoute.addChildren([
   libraryRoute,
   storeRoute,
   communityRoute,
   profileRoute,
   gameRoute,
+  historyRoute,
+  shelfRoute,
 ]);
 
 /** Hash history: a desktop webview has no server to rewrite deep links to index.html. */

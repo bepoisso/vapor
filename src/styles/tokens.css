@@ -18,6 +18,10 @@
   --accent: #ffd43b;
   --accent-ink: #0b0b0f;
   --avatar-placeholder: #6c4fd1;
+  --surface-quiet: #15151b;
+  --surface-rule: #17171e;
+  --border-dashed: #3a3a46;
+  --topbar-scrolled: rgb(11 11 15 / 0.92);
 
   /* Translucent fills for chrome sitting over images (top bar, ghost buttons) */
   --overlay: rgb(0 0 0 / 0.4);
@@ -26,6 +30,18 @@
   --overlay-border-strong: rgb(255 255 255 / 0.2);
   --ghost: rgb(255 255 255 / 0.12);
   --ghost-hover: rgb(255 255 255 / 0.18);
+
+  /* Scrims: text over images always sits on one */
+  --scrim-hero-v: linear-gradient(
+    180deg,
+    rgb(11 11 15 / 0.55) 0%,
+    rgb(11 11 15 / 0) 22%,
+    rgb(11 11 15 / 0) 45%,
+    rgb(11 11 15 / 0.85) 82%,
+    var(--bg) 100%
+  );
+  --scrim-hero-h: linear-gradient(90deg, rgb(11 11 15 / 0.75) 0%, rgb(11 11 15 / 0) 55%);
+  --scrim-wide: linear-gradient(180deg, rgb(11 11 15 / 0) 35%, rgb(11 11 15 / 0.9) 100%);
 
   /* Typography */
   --font-sans: "Geist Variable", system-ui, sans-serif;
@@ -43,6 +59,7 @@
 
   /* Spacing & layout */
   --page-x: 48px;
+  --hero-height: 480px;
   --topbar-x: 32px;
   --topbar-height: 76px;
   --section-gap: 36px;
@@ -54,6 +71,8 @@
   --radius-sm: 9px;
   --radius-md: 12px;
   --radius-lg: 14px;
+  --radius-wide: 16px;
+  --radius-dense: 10px;
   --radius-xl: 18px;
   --radius-2xl: 22px;
   --radius-pill: 999px;

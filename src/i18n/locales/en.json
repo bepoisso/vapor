@@ -8,6 +8,8 @@
   "search": {
     "label": "Search your library",
     "placeholder": "Search your library",
+    "placeholderCount_one": "Search your {{count}} game",
+    "placeholderCount_other": "Search your {{count}} games",
     "shortcut": "Ctrl K"
   },
   "profile": {
@@ -18,6 +20,83 @@
     "community": "Community",
     "profile": "Profile",
     "game": "Game page",
+    "history": "History",
+    "shelf": "Smart shelf",
     "comingSoon": "Coming soon."
+  },
+  "status": {
+    "error": "Couldn't load your library.",
+    "retry": "Try again"
+  },
+  "hero": {
+    "kicker": "Continue · Last played {{date}}",
+    "kickerNoDate": "Continue",
+    "play": "Play",
+    "install": "Install",
+    "gamePage": "Game page",
+    "achievements": "{{unlocked}}/{{total}} achievements",
+    "cloud": {
+      "synced": "Cloud synced",
+      "pending": "Cloud sync pending",
+      "conflict": "Cloud conflict"
+    }
+  },
+  "recent": {
+    "title": "Recently played",
+    "history": "History →"
+  },
+  "mood": {
+    "title": "No idea? In the mood for…",
+    "groupLabel": "Moods",
+    "empty": "Nothing matches this mood yet.",
+    "moods": {
+      "friends": "Play with friends",
+      "story": "A story",
+      "hard": "A challenge",
+      "chill": "Unwind",
+      "quick": "A quick game",
+      "explore": "Explore"
+    }
+  },
+  "shelves": {
+    "label": "Smart shelves",
+    "seeAll": "See all ({{count}}) →",
+    "create": "+ Create a smart shelf"
+  },
+  "library": {
+    "title": "Library",
+    "count_one": "{{count}} game",
+    "count_other": "{{count}} games",
+    "clear": "Clear all",
+    "saveShelf": "Save as shelf",
+    "sort": {
+      "button": "Sort: {{sort}}",
+      "name": "A–Z",
+      "lastPlayed": "Recently played",
+      "playtime": "Playtime"
+    },
+    "facets": {
+      "label": "Filters",
+      "genre": "Genre",
+      "modes": "Mode",
+      "tags": "Vibe"
+    },
+    "chip_one": "{{value}}, {{count}} game",
+    "chip_other": "{{value}}, {{count}} games",
+    "empty": "No game matches all of these. Remove a filter.",
+    "emptyQuery": "No game matches “{{query}}”."
+  },
+  "card": {
+    "play": "Play {{name}}"
+  },
+  "rules": {
+    "and": "+",
+    "or": "or",
+    "installed": "Installed",
+    "notInstalled": "Not installed",
+    "notPlayedFor_one": "Not played for {{count}} day",
+    "notPlayedFor_other": "Not played for {{count}} days",
+    "playtime": "Playtime {{symbol}} {{value}} min",
+    "achievements": "Achievements {{symbol}} {{value}}%"
   }
 }

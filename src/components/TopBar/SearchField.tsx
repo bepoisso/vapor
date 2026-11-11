@@ -1,15 +1,38 @@
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Search } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { type ChangeEvent, type KeyboardEvent, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { LIBRARY_SECTION_ID } from "@/features/library/components/LibrarySection";
+import { useFiltersStore } from "@/features/library/store/filtersStore";
+import { useLibraryStore } from "@/features/library/store/libraryStore";
 import styles from "./TopBar.module.css";
 
-/** Library search. `Ctrl K` focuses it from anywhere. Filtering is wired in Phase 1. */
+function scrollToLibrary() {
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  requestAnimationFrame(() => {
+    document
+      .getElementById(LIBRARY_SECTION_ID)
+      ?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  });
+}
+
+/**
+ * Library search: filters the Library grid by name, on top of the facets. Typing jumps to the
+ * Library section (navigating home first if needed). `Ctrl K` focuses it, `Esc` clears it.
+ */
 export function SearchField() {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
+  const query = useFiltersStore((state) => state.query);
+  const setQuery = useFiltersStore((state) => state.setQuery);
+  const gameCount = useLibraryStore((state) =>
+    state.status === "ready" ? state.games.length : null,
+  );
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const navigate = useNavigate();
 
   useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
+    function onKeyDown(event: globalThis.KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         inputRef.current?.focus();
@@ -20,6 +43,24 @@ export function SearchField() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  function onChange(event: ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    const startedTyping = query.trim() === "" && value.trim() !== "";
+    setQuery(value);
+    if (pathname !== "/") {
+      void navigate({ to: "/" }).then(scrollToLibrary);
+    } else if (startedTyping) {
+      scrollToLibrary();
+    }
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Escape") {
+      setQuery("");
+      event.currentTarget.blur();
+    }
+  }
+
   return (
     <label className={styles.search}>
       <Search size={16} strokeWidth={2} className={styles.searchIcon} aria-hidden="true" />
@@ -28,7 +69,14 @@ export function SearchField() {
         ref={inputRef}
         type="search"
         className={styles.searchInput}
-        placeholder={t("search.placeholder")}
+        value={query}
+        onChange={onChange}
+        onKeyDown={onKeyDown}
+        placeholder={
+          gameCount === null
+            ? t("search.placeholder")
+            : t("search.placeholderCount", { count: gameCount })
+        }
         spellCheck={false}
         autoComplete="off"
         aria-keyshortcuts="Control+K"

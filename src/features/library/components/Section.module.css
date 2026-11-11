@@ -1,0 +1,48 @@
+/*
+ * Shared section layout (mockup: .section, .section__head, .h2, .h3, .link-muted).
+ * Variants override the custom properties below instead of padding/gap, so the result never
+ * depends on the order in which CSS Modules are loaded.
+ */
+
+.section {
+  padding: var(--section-top, var(--section-gap)) var(--page-x) var(--section-bottom, 0);
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-inner-gap, var(--title-gap));
+}
+
+.first {
+  --section-top: 8px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.h2 {
+  margin: 0;
+  font-size: var(--fs-22);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
+.h3 {
+  margin: 0;
+  font-size: var(--fs-20);
+  font-weight: 700;
+}
+
+.linkMuted {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: var(--fs-13);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.linkMuted:hover {
+  color: var(--text-hover);
+}

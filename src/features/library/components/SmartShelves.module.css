@@ -1,0 +1,29 @@
+.shelf {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.rule {
+  font-size: var(--fs-12);
+  color: var(--text-muted);
+  background: var(--surface-rule);
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ruleIcon {
+  color: var(--accent);
+}
+
+.createRow {
+  --section-top: 20px;
+}
+
+.create {
+  align-self: flex-start;
+}

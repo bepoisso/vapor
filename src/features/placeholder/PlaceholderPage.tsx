@@ -2,7 +2,12 @@ import { useTranslation } from "react-i18next";
 import styles from "./PlaceholderPage.module.css";
 
 type PlaceholderKey =
-  "placeholder.store" | "placeholder.community" | "placeholder.profile" | "placeholder.game";
+  | "placeholder.store"
+  | "placeholder.community"
+  | "placeholder.profile"
+  | "placeholder.game"
+  | "placeholder.history"
+  | "placeholder.shelf";
 
 interface PlaceholderPageProps {
   titleKey: PlaceholderKey;
