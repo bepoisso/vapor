@@ -30,6 +30,8 @@ export function markDataReady(): void {
 }
 
 function waitForAppFont(): Promise<unknown> {
+  // `document.fonts` is missing in some environments (jsdom in tests).
+  if (!("fonts" in document)) return Promise.resolve();
   const font = document.fonts.load('1em "Geist Variable"').catch(() => undefined);
   const timeout = new Promise((resolve) => setTimeout(resolve, FONT_WAIT_MS));
   return Promise.race([font, timeout]);
