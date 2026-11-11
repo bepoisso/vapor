@@ -2,6 +2,11 @@
 //! process launching. The frontend talks to it through typed Tauri commands only.
 
 mod commands;
+mod error;
+mod images;
+mod library;
+mod model;
+mod startup;
 
 use std::time::Duration;
 
@@ -18,7 +23,15 @@ const BINDINGS_PATH: &str = "../src/lib/bindings.ts";
 const SHOW_WINDOW_FALLBACK: Duration = Duration::from_secs(3);
 
 fn specta_builder() -> Builder<tauri::Wry> {
-    Builder::<tauri::Wry>::new().commands(collect_commands![commands::app_info])
+    Builder::<tauri::Wry>::new()
+        // One TypeScript type per Rust type (no `_Serialize`/`_Deserialize` split).
+        .disable_serde_phases()
+        .commands(collect_commands![
+            commands::app_info,
+            commands::get_library,
+            commands::list_shelves,
+            commands::report_startup,
+        ])
 }
 
 #[cfg(any(debug_assertions, test))]
@@ -33,6 +46,7 @@ fn export_bindings(builder: &Builder<tauri::Wry>) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let process_start = startup::ProcessStart::now();
     let builder = specta_builder();
 
     #[cfg(debug_assertions)]
@@ -53,6 +67,15 @@ pub fn run() {
                 .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
                 .build(),
         )
+        .manage(process_start)
+        .manage(images::ImageStore::sample())
+        .register_asynchronous_uri_scheme_protocol(images::SCHEME, |ctx, request, responder| {
+            let app = ctx.app_handle().clone();
+            tauri::async_runtime::spawn_blocking(move || {
+                let store = app.state::<images::ImageStore>();
+                responder.respond(images::handle(&store, &request));
+            });
+        })
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             builder.mount_events(app);

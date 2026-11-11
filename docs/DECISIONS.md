@@ -28,3 +28,13 @@ Short log of decisions taken with the owner. Newest last. Each entry: what, why,
 
 ## 2026-11-11 — UI language
 - The app UI is **English only** (no French locale). Supersedes the original `en` + `fr` plan. Strings stay in `src/i18n/locales/en.json` behind react-i18next so a language can be added later without touching components.
+
+## 2026-11-11 — Phase 1 data model & UI choices
+- **Rules nest.** `Rule { all?: RuleNode[]; any?: RuleNode[] }` where a node is a condition or a sub-rule. The spec's flat `{ all?: Condition[]; any?: Condition[] }` cannot express "Save as shelf" (one OR group per facet, facets ANDed), e.g. `(Platformer OR RPG) AND Coop`.
+- **Unknown is `null`, not absent.** Generated types use `T | null` (e.g. `genre: string | null` until the Store API fills it). The UI hides unknown values instead of guessing.
+- **Images go through a `vapor://` protocol** (`http://vapor.localhost/img/<appid>/<cover|hero|logo>` on Windows). The frontend never sees file paths. Phase 1 serves `mockups/assets/`; Phase 2 swaps in Steam's librarycache and resized thumbnails.
+- **Fixed top bar.** In the mockup it scrolls away with the hero. Search filters the Library grid far below, so the bar stays fixed: transparent over the hero, solid background once scrolled.
+- **Genre chips are ordered by game count** (most common first), not by first appearance as in the mockup. Vibe tags keep the mockup order.
+- **Mood suggestions follow the spec** (installed first, then not played recently, then a per-day stable shuffle), so they differ from the mockup's "first 4 matches".
+- The sample data got made-up `lastPlayed` dates for the six other "Recently played" games of the mockup (only Celeste's values are real).
+- Facet chips are labelled for screen readers as "Platformer, 2 games".

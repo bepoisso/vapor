@@ -1,4 +1,4 @@
-/* The top bar floats over the page (and over the Library hero), and scrolls away with it. */
+/* The top bar is fixed and floats over the page (and over the Library hero). */
 .shell {
   position: relative;
   min-height: 100vh;

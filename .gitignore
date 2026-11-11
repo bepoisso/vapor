@@ -19,3 +19,6 @@ mockups/assets/
 .DS_Store
 *.suo
 *.sw?
+
+# Local tool output (screenshots, traces)
+artifacts/

@@ -7,11 +7,98 @@ import { invoke as __TAURI_INVOKE } from "@tauri-apps/api/core";
 /** Commands */
 export const commands = {
 	appInfo: () => __TAURI_INVOKE<AppInfo>("app_info"),
+	/**  The whole library. Phase 1: sample data. */
+	getLibrary: () => __TAURI_INVOKE<Game[]>("get_library"),
+	listShelves: () => __TAURI_INVOKE<SmartShelf[]>("list_shelves"),
+	/**  Receives the frontend's startup marks (see `startup.rs`). No-op unless tracing is enabled. */
+	reportStartup: (marks: FrontendMarks) => __TAURI_INVOKE<null>("report_startup", { marks }),
 };
 
 /* Types */
+export type Achievements = {
+	unlocked: number,
+	total: number,
+};
+
 /**  Static information about the running build. */
 export type AppInfo = {
 	name: string,
 	version: string,
+};
+
+export type CloudStatus = "synced" | "pending" | "conflict" | "unknown";
+
+/**  What the frontend receives when a command fails. */
+export type CommandError = {
+	message: string,
+};
+
+export type Condition = {
+	field: Field,
+	op: Op,
+	value: ConditionValue,
+};
+
+export type ConditionValue = boolean | number | null | string;
+
+export type Field = "genre" | "modes" | "tags" | "installed" | "playtimeMinutes" | "lastPlayed" | "achievementsPct";
+
+/**  Marks measured by the frontend, in ms relative to `navigation_start` (`performance.timeOrigin`). */
+export type FrontendMarks = {
+	navigationStart: number | null,
+	scriptStart: number | null,
+	/**  `get_library` and `list_shelves` resolved. */
+	libraryLoaded: number | null,
+	/**  The page committed a render with the data. */
+	dataReady: number | null,
+	fontReady: number | null,
+	windowShown: number | null,
+};
+
+export type Game = {
+	appId: number,
+	name: string,
+	/**  Primary genre. `null` until known (Store API enrichment, Phase 4). */
+	genre: string | null,
+	modes: Mode[],
+	/**  Vibe tags: Indie, Hard, Story, Chill, Action, Competitive, Exploration, Short sessions… */
+	tags: string[],
+	installed: boolean | null,
+	playtimeMinutes: number | null,
+	/**  ISO 8601 date or date-time. */
+	lastPlayed: string | null,
+	achievements: Achievements | null,
+	cloud: CloudStatus | null,
+	updatePending: boolean | null,
+	images: GameImages,
+};
+
+/**  URLs served by the `vapor` protocol (see `images.rs`). `null` when the art does not exist. */
+export type GameImages = {
+	cover: string | null,
+	hero: string | null,
+	logo: string | null,
+};
+
+export type Mode = "Solo" | "Coop" | "PvP";
+
+export type Op = "includes" | "eq" | "lt" | "gt" | "olderThanDays";
+
+/**
+ *  `all` = AND, `any` = OR; both may be set. Groups can nest, so a facet selection like
+ *  (Platformer OR RPG) AND (Coop) is expressible. Deviation from the spec, see DECISIONS.md.
+ */
+export type Rule = {
+	all?: RuleNode[],
+	any?: RuleNode[],
+};
+
+export type RuleNode = Condition | Rule;
+
+export type SmartShelf = {
+	id: string,
+	title: string,
+	rule: Rule,
+	order: number,
+	pinned: boolean,
 };
