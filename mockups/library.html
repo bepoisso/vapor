@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vapor — Library (reference mockup)</title>
+<!--
+  REFERENCE MOCKUP — not production code.
+  This is the approved "Mix A" library layout, ported to a single static file (vanilla JS, no build).
+  Open it directly in a browser. Images are in ./assets and use Steam's own cache file names
+  (<appid>_library_600x900.jpg, <appid>_library_hero.jpg, <appid>_logo.png).
+  Interactive parts: mood pills, facet chips (filter the grid). Everything else is static.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B0F; --surface:#121218; --surface-2:#18181F; --surface-3:#1E1E26;
+    --border:#1E1E26; --border-strong:#2A2A33;
+    --text:#F4F4F6; --text-2:#C9C9D1; --text-muted:#9B9BA6;
+    --accent:#FFD43B; --accent-ink:#0B0B0F;
+    --radius-sm:9px; --radius-md:12px; --radius-lg:14px; --radius-xl:18px; --radius-2xl:22px;
+    --page-x:48px;
+    --ease-out:cubic-bezier(.2,.8,.2,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:400 14px/1.4 Geist,system-ui,sans-serif}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer}
+  img{display:block}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+  /* ---------- Hero ---------- */
+  .hero{position:relative;height:480px;overflow:hidden}
+  .hero__img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%}
+  .hero__scrim-v{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,11,15,.55) 0%,rgba(11,11,15,0) 22%,rgba(11,11,15,0) 45%,rgba(11,11,15,.85) 82%,var(--bg) 100%)}
+  .hero__scrim-h{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,11,15,.75) 0%,rgba(11,11,15,0) 55%)}
+  .topbar{position:relative;display:flex;align-items:center;gap:16px;padding:18px 32px}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;letter-spacing:-.02em}
+  .seg{display:flex;gap:4px;margin-left:12px;padding:4px;border-radius:var(--radius-md);background:rgba(0,0,0,.4)}
+  .seg a{height:32px;padding:0 14px;border-radius:var(--radius-sm);display:flex;align-items:center;color:var(--text-2);font-weight:500}
+  .seg a:hover{color:#fff}
+  .seg a[aria-current="page"]{background:var(--text);color:var(--bg);font-weight:600}
+  .search{margin:0 auto;width:380px;height:40px;display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:var(--radius-md);background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1)}
+  .search input{flex:1;min-width:0;border:0;outline:none;background:none;color:#fff;font:400 14px Geist}
+  .kbd{font-size:11px;color:var(--text-2);border:1px solid rgba(255,255,255,.2);border-radius:5px;padding:1px 5px}
+  .profile{height:40px;padding:0 6px 0 12px;border-radius:var(--radius-md);background:rgba(0,0,0,.4);display:flex;align-items:center;gap:10px;font-weight:600}
+  .avatar{width:30px;height:30px;border-radius:8px;background:#6C4FD1}
+  .hero__content{position:absolute;left:var(--page-x);bottom:40px;display:flex;flex-direction:column;gap:14px}
+  .kicker{font-size:12px;font-weight:600;letter-spacing:.1em;color:#E6E6EA;text-transform:uppercase}
+  .hero__logo{height:140px;width:auto;max-width:460px;object-fit:contain;object-position:left bottom;align-self:flex-start}
+  .row{display:flex;gap:10px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 22px;border-radius:var(--radius-md);border:0;font-weight:600;font-size:14px}
+  .btn--primary{background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:15px;padding:0 26px}
+  .btn--ghost{background:rgba(255,255,255,.12);color:#fff}
+  .btn--ghost:hover{background:rgba(255,255,255,.18)}
+  .hero__meta{margin-left:8px;font-size:13px;color:#E6E6EA}
+
+  /* ---------- Sections ---------- */
+  .section{padding:36px var(--page-x) 0;display:flex;flex-direction:column;gap:14px}
+  .section--first{padding-top:8px}
+  .section__head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .h2{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em}
+  .h3{margin:0;font-size:20px;font-weight:700}
+  .link-muted{margin-left:auto;color:var(--text-muted);font-weight:500;font-size:13px}
+  .link-muted:hover{color:#fff}
+  .grid-7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:18px}
+  .grid-10{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:16px 14px}
+
+  /* Cover card */
+  .cover{display:flex;flex-direction:column;gap:8px}
+  .cover__art{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:var(--radius-lg);background:var(--surface-2);transition:transform .25s var(--ease-out),box-shadow .25s}
+  .cover:hover .cover__art,.cover:focus-visible .cover__art{transform:translateY(-6px);box-shadow:0 22px 40px rgba(0,0,0,.55)}
+  .cover__title{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cover:hover .cover__title{color:var(--accent)}
+  .cover__sub{font-size:12px;color:var(--text-muted)}
+  .grid-10 .cover__art{border-radius:10px}
+  .grid-10 .cover__title{font-size:12px}
+
+  /* Mood module */
+  .mood{margin:36px var(--page-x) 0;border-radius:var(--radius-2xl);background:var(--surface);border:1px solid var(--border);padding:20px 22px;display:flex;flex-direction:column;gap:16px}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-left:8px}
+  .pill{height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-2);color:#E6E6EA;font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px;transition:background .15s,border-color .15s}
+  .pill:hover{border-color:var(--accent)}
+  .pill[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  .wide{position:relative;height:170px;border-radius:16px;overflow:hidden;display:flex;align-items:flex-end;padding:14px}
+  .wide__img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;transition:transform .35s ease}
+  .wide:hover .wide__img{transform:scale(1.05)}
+  .wide__scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,11,15,0) 35%,rgba(11,11,15,.9) 100%)}
+  .wide__text{position:relative;flex:1;display:flex;flex-direction:column;gap:3px}
+  .wide__title{font-weight:700;font-size:15px}
+  .wide__sub{font-size:12px;color:var(--text-2)}
+  .fab{position:relative;width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center}
+
+  /* Shelves */
+  .rule{font-size:12px;color:var(--text-muted);background:#17171E;border-radius:999px;padding:4px 10px;display:flex;align-items:center;gap:6px}
+  .btn-dashed{align-self:flex-start;height:40px;padding:0 16px;border-radius:var(--radius-md);border:1px dashed #3A3A46;background:none;color:var(--text-2);font-weight:600;font-size:13px}
+
+  /* Facets */
+  .facets{border-radius:var(--radius-xl);background:var(--surface);border:1px solid var(--border);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+  .facet{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .facet__label{width:84px;font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--text-muted);text-transform:uppercase}
+  .chip{height:30px;padding:0 11px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-2);color:#E6E6EA;font-weight:500;font-size:12px;display:flex;align-items:center;gap:6px}
+  .chip:hover{border-color:var(--accent)}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .chip__n{opacity:.6}
+  .chip:disabled{opacity:.35;cursor:default}
+  .btn-sm{height:32px;padding:0 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;border:1px solid var(--border-strong);background:none;color:var(--text-2)}
+  .btn-sm--accent{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700}
+  .btn-sm--quiet{border:0;background:#15151B}
+  .empty{padding:40px;border-radius:16px;border:1px dashed var(--border-strong);text-align:center;color:var(--text-muted)}
+  .hidden{display:none !important}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <img class="hero__img" src="assets/504230_library_hero.jpg" alt="">
+  <div class="hero__scrim-v"></div>
+  <div class="hero__scrim-h"></div>
+
+  <div class="topbar">
+    <span class="brand">
+      <svg width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 20c4 0 4-4 8-4s4 4 8 4 4-4 6-4" stroke="#FFD43B" stroke-width="3.4" stroke-linecap="round"/><path d="M5 12c4 0 4-4 8-4s4 4 8 4 4-4 6-4" stroke="#fff" stroke-width="3.4" stroke-linecap="round" opacity=".6"/></svg>vapor
+    </span>
+    <nav class="seg" aria-label="Main">
+      <a href="#">Store</a>
+      <a href="#" aria-current="page">Library</a>
+      <a href="#">Community</a>
+    </nav>
+    <label class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9C9D1" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <span class="sr-only">Search your library</span>
+      <input placeholder="Search your 85 games">
+      <span class="kbd">Ctrl K</span>
+    </label>
+    <a class="profile" href="#">Flitcher<span class="avatar"></span></a>
+  </div>
+
+  <div class="hero__content">
+    <span class="kicker">Continue · Last played Jan 6</span>
+    <img class="hero__logo" src="assets/504230_logo.png" alt="Celeste">
+    <div class="row">
+      <a class="btn btn--primary" href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="#0B0B0F" aria-hidden="true"><path d="M7 4l12 8-12 8z"/></svg>Play</a>
+      <a class="btn btn--ghost" href="#">Game page</a>
+      <span class="hero__meta">46.8 h · 18/32 achievements · Cloud synced</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section section--first" aria-labelledby="recent-h">
+    <div class="section__head">
+      <h2 class="h2" id="recent-h">Recently played</h2>
+      <a class="link-muted" href="#">History →</a>
+    </div>
+    <div class="grid-7" id="recent"></div>
+  </section>
+
+  <section class="mood" aria-labelledby="mood-h">
+    <div class="section__head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFD43B" stroke-width="2" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>
+      <h2 class="h3" id="mood-h">No idea? In the mood for…</h2>
+      <div class="pills" id="moods" role="group" aria-label="Moods"></div>
+    </div>
+    <div class="grid-4" id="mood-games"></div>
+  </section>
+
+  <section class="section" id="shelves" aria-label="Smart shelves"></section>
+  <div class="section" style="padding-top:20px"><button class="btn-dashed">+ Create a smart shelf</button></div>
+
+  <section class="section" style="padding-top:44px;padding-bottom:48px;gap:16px" aria-labelledby="lib-h">
+    <div class="section__head">
+      <h2 class="h2" id="lib-h">Library</h2>
+      <span style="color:var(--text-muted)" id="lib-count"></span>
+      <button class="btn-sm hidden" id="clear">Clear all</button>
+      <button class="btn-sm btn-sm--accent hidden" id="save-shelf">Save as shelf</button>
+      <button class="btn-sm btn-sm--quiet" style="margin-left:auto">Sort: A–Z ▾</button>
+    </div>
+    <div class="facets" id="facets"></div>
+    <div class="empty hidden" id="empty">No game matches all of these. Remove a filter.</div>
+    <div class="grid-10" id="library"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- Data (mirror of data/games.sample.json) ---------- */
+const GAMES = [
+  { appId: 504230,  name: "Celeste",               genre: "Platformer",       modes: ["Solo"],         tags: ["Indie","Hard"],                     hasLogo: true,  playtimeHours: 46.8, lastPlayed: "Jan 6" },
+  { appId: 1145360, name: "Hades",                 genre: "Roguelike",        modes: ["Solo"],         tags: ["Indie","Action","Short sessions"],  hasLogo: true },
+  { appId: 367520,  name: "Hollow Knight",         genre: "Metroidvania",     modes: ["Solo"],         tags: ["Indie","Hard","Exploration"],       hasLogo: true },
+  { appId: 1174180, name: "Red Dead Redemption 2", genre: "Action-adventure", modes: ["Solo"],         tags: ["Story","Exploration"],              hasLogo: true },
+  { appId: 292030,  name: "The Witcher 3",         genre: "RPG",              modes: ["Solo"],         tags: ["Story","Exploration"],              hasLogo: true },
+  { appId: 413150,  name: "Stardew Valley",        genre: "Simulation",       modes: ["Solo","Coop"],  tags: ["Indie","Chill"],                    hasLogo: true },
+  { appId: 730,     name: "Counter-Strike 2",      genre: "FPS",              modes: ["PvP"],          tags: ["Competitive","Short sessions"],     hasLogo: false },
+  { appId: 553850,  name: "Helldivers 2",          genre: "Shooter",          modes: ["Coop"],         tags: ["Action","Short sessions"],          hasLogo: true },
+  { appId: 268910,  name: "Cuphead",               genre: "Platformer",       modes: ["Solo","Coop"],  tags: ["Indie","Hard"],                     hasLogo: true },
+  { appId: 220,     name: "Half-Life 2",           genre: "FPS",              modes: ["Solo"],         tags: ["Story"],                            hasLogo: false },
+  { appId: 1222140, name: "Detroit: Become Human", genre: "Adventure",        modes: ["Solo"],         tags: ["Story"],                            hasLogo: true },
+  { appId: 271590,  name: "Grand Theft Auto V",    genre: "Action-adventure", modes: ["Solo","PvP"],   tags: ["Exploration"],                      hasLogo: true },
+  { appId: 8870,    name: "BioShock Infinite",     genre: "FPS",              modes: ["Solo"],         tags: ["Story"],                            hasLogo: true },
+  { appId: 105600,  name: "Terraria",              genre: "Sandbox",          modes: ["Solo","Coop"],  tags: ["Indie","Chill","Exploration"],      hasLogo: true },
+  { appId: 1172470, name: "Apex Legends",          genre: "Battle royale",    modes: ["PvP"],          tags: ["Competitive","Short sessions"],     hasLogo: true }
+];
+const RECENT = [504230, 1145360, 367520, 1174180, 413150, 730, 1172470];
+
+const ICON = {
+  friends: "M9 8a3.5 3.5 0 1 0 0-.01M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6",
+  story:   "M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2zM8 7h6M8 11h6",
+  hard:    "M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8l5.5-.8z",
+  chill:   "M12 21c-4-3-7-6-7-10a7 7 0 0 1 14 0c0 4-3 7-7 10z",
+  quick:   "M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
+  explore: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM15.5 8.5l-2 5-5 2 2-5z"
+};
+
+/* A rule = { all?: Cond[], any?: Cond[] }, Cond = { field: 'genre'|'modes'|'tags', value } */
+const MOODS = [
+  { id: "friends", label: "Play with friends", rule: { any: [{ field: "modes", value: "Coop" }, { field: "modes", value: "PvP" }] } },
+  { id: "story",   label: "A story",           rule: { any: [{ field: "tags", value: "Story" }] } },
+  { id: "hard",    label: "A challenge",       rule: { any: [{ field: "tags", value: "Hard" }] } },
+  { id: "chill",   label: "Unwind",            rule: { any: [{ field: "tags", value: "Chill" }] } },
+  { id: "quick",   label: "A quick game",      rule: { any: [{ field: "tags", value: "Short sessions" }] } },
+  { id: "explore", label: "Explore",           rule: { any: [{ field: "tags", value: "Exploration" }] } }
+];
+const SHELVES = [
+  { title: "Demanding indies", ruleLabel: "Indie + Hard", rule: { all: [{ field: "tags", value: "Indie" }, { field: "tags", value: "Hard" }] } },
+  { title: "Big stories",      ruleLabel: "Story",        rule: { all: [{ field: "tags", value: "Story" }] } },
+  { title: "Online",           ruleLabel: "PvP",          rule: { all: [{ field: "modes", value: "PvP" }] } }
+];
+const FACETS = [
+  { key: "genre", label: "Genre",   values: [...new Set(GAMES.map(g => g.genre))], get: g => [g.genre] },
+  { key: "modes", label: "Mode",    values: ["Solo", "Coop", "PvP"],                get: g => g.modes },
+  { key: "tags",  label: "Vibe",    values: ["Indie","Hard","Story","Chill","Action","Competitive","Exploration","Short sessions"], get: g => g.tags }
+];
+
+/* ---------- Helpers ---------- */
+const img = (id, kind) => `assets/${id}_${kind}`;          // kind: library_600x900.jpg | library_hero.jpg | logo.png
+const fieldValues = (g, f) => f === "genre" ? [g.genre] : g[f];
+const condOk = (g, c) => fieldValues(g, c.field).includes(c.value);
+const matches = (g, r) => (!r.all || r.all.every(c => condOk(g, c))) && (!r.any || r.any.some(c => condOk(g, c)));
+const byId = id => GAMES.find(g => g.appId === id);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+const playIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="#0B0B0F" aria-hidden="true"><path d="M7 4l12 8-12 8z"/></svg>';
+const sparkle = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFD43B" stroke-width="2.4" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>';
+
+const coverHTML = (g, sub) => `
+  <a class="cover" href="#" title="${esc(g.name)}">
+    <img class="cover__art" src="${img(g.appId, "library_600x900.jpg")}" alt="" loading="lazy">
+    <span class="cover__title">${esc(g.name)}</span>
+    ${sub ? `<span class="cover__sub">${esc(sub)}</span>` : ""}
+  </a>`;
+
+/* ---------- State ---------- */
+const state = { mood: "friends", selected: new Set() };
+
+/* ---------- Renderers ---------- */
+function renderRecent() {
+  document.getElementById("recent").innerHTML = RECENT.map(byId).map(g => coverHTML(g)).join("");
+}
+
+function renderMoods() {
+  document.getElementById("moods").innerHTML = MOODS.map(m => `
+    <button class="pill" data-mood="${m.id}" aria-pressed="${m.id === state.mood}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${ICON[m.id]}"/></svg>${esc(m.label)}
+    </button>`).join("");
+  const mood = MOODS.find(m => m.id === state.mood);
+  document.getElementById("mood-games").innerHTML = GAMES.filter(g => matches(g, mood.rule)).slice(0, 4).map(g => `
+    <a class="wide" href="#">
+      <img class="wide__img" src="${img(g.appId, "library_hero.jpg")}" alt="">
+      <span class="wide__scrim"></span>
+      <span class="wide__text"><span class="wide__title">${esc(g.name)}</span><span class="wide__sub">${esc([g.genre, ...g.modes].join(" · "))}</span></span>
+      <span class="fab" aria-label="Play ${esc(g.name)}">${playIcon}</span>
+    </a>`).join("");
+}
+
+function renderShelves() {
+  document.getElementById("shelves").innerHTML = SHELVES.map(s => {
+    const list = GAMES.filter(g => matches(g, s.rule));
+    return `
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px">
+        <div class="section__head">
+          <h2 class="h3">${esc(s.title)}</h2>
+          <span class="rule">${sparkle}${esc(s.ruleLabel)}</span>
+          <a class="link-muted" href="#">See all (${list.length}) →</a>
+        </div>
+        <div class="grid-7">${list.slice(0, 7).map(g => coverHTML(g)).join("")}</div>
+      </div>`;
+  }).join("");
+}
+
+/* Facets: OR inside a facet, AND across facets. Counts are computed ignoring the facet's own selection. */
+function passes(g, skipKey) {
+  return FACETS.every(f => {
+    if (f.key === skipKey) return true;
+    const on = f.values.filter(v => state.selected.has(v));
+    return on.length === 0 || on.some(v => f.get(g).includes(v));
+  });
+}
+function renderLibrary() {
+  document.getElementById("facets").innerHTML = FACETS.map(f => `
+    <div class="facet">
+      <span class="facet__label">${f.label}</span>
+      ${f.values.map(v => {
+        const n = GAMES.filter(g => passes(g, f.key) && f.get(g).includes(v)).length;
+        const on = state.selected.has(v);
+        return `<button class="chip" data-chip="${esc(v)}" aria-pressed="${on}" ${n === 0 && !on ? "disabled" : ""}>${esc(v)}<span class="chip__n">${n}</span></button>`;
+      }).join("")}
+    </div>`).join("");
+  const list = GAMES.filter(g => passes(g, null)).sort((a, b) => a.name.localeCompare(b.name));
+  document.getElementById("library").innerHTML = list.map(g => coverHTML(g)).join("");
+  document.getElementById("lib-count").textContent = `${list.length} games`;
+  document.getElementById("empty").classList.toggle("hidden", list.length > 0);
+  const has = state.selected.size > 0;
+  document.getElementById("clear").classList.toggle("hidden", !has);
+  document.getElementById("save-shelf").classList.toggle("hidden", !has);
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("click", e => {
+  const mood = e.target.closest("[data-mood]");
+  if (mood) { state.mood = mood.dataset.mood; renderMoods(); return; }
+  const chip = e.target.closest("[data-chip]");
+  if (chip) { const v = chip.dataset.chip; state.selected.has(v) ? state.selected.delete(v) : state.selected.add(v); renderLibrary(); return; }
+  if (e.target.closest("#clear")) { state.selected.clear(); renderLibrary(); }
+});
+
+renderRecent(); renderMoods(); renderShelves(); renderLibrary();
+</script>
+</body>
+</html>

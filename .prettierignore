@@ -1,0 +1,8 @@
+pnpm-lock.yaml
+dist
+coverage
+mockups
+src-tauri/target
+src-tauri/gen
+src/lib/bindings.ts
+*.md

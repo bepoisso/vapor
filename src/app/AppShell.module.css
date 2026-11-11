@@ -1,0 +1,5 @@
+/* The top bar floats over the page (and over the Library hero), and scrolls away with it. */
+.shell {
+  position: relative;
+  min-height: 100vh;
+}

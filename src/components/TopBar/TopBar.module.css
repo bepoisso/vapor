@@ -1,0 +1,135 @@
+.topbar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px var(--topbar-x);
+}
+
+/* Brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: var(--fs-17);
+  letter-spacing: var(--tracking-tight);
+}
+
+.waveAccent,
+.waveMuted {
+  stroke-width: 3.4;
+  stroke-linecap: round;
+}
+
+.waveAccent {
+  stroke: var(--accent);
+}
+
+.waveMuted {
+  stroke: var(--text-hover);
+  opacity: 0.6;
+}
+
+/* Segmented nav */
+.nav {
+  display: flex;
+  gap: 4px;
+  margin-left: 12px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  background: var(--overlay);
+}
+
+.navItem {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  color: var(--text-2);
+  font-weight: 500;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.navItem:hover {
+  color: var(--text-hover);
+}
+
+.navItem[aria-current="page"] {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+}
+
+/* Search */
+.search {
+  margin: 0 auto;
+  width: 380px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  background: var(--overlay-strong);
+  border: 1px solid var(--overlay-border);
+}
+
+.search:focus-within {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.searchIcon {
+  flex: none;
+  color: var(--text-2);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--text-hover);
+  font-size: var(--fs-14);
+}
+
+.searchInput::placeholder {
+  color: var(--text-2);
+}
+
+.searchInput::-webkit-search-cancel-button {
+  display: none;
+}
+
+.kbd {
+  font: inherit;
+  font-size: var(--fs-11);
+  color: var(--text-2);
+  border: 1px solid var(--overlay-border-strong);
+  border-radius: var(--radius-xs);
+  padding: 1px 5px;
+}
+
+/* Profile */
+.profile {
+  height: 40px;
+  padding: 0 5px;
+  border-radius: var(--radius-md);
+  background: var(--overlay);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-avatar);
+  background: var(--avatar-placeholder);
+}

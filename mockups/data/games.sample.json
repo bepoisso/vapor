@@ -1,0 +1,35 @@
+{
+  "_note": "Sample data for the mockup only. Tags were assigned by hand. In the real app, genre/categories come from the Steam Store API and playtime/last-played from the Steam Web API or local Steam files. Only Celeste has real playtime/achievement values; everything else is null.",
+  "user": { "personaName": "Flitcher", "favoritesCount": 85 },
+  "games": [
+    { "appId": 504230,  "name": "Celeste",               "genre": "Platformer",       "modes": ["Solo"],          "tags": ["Indie", "Hard"],                          "playtimeHours": 46.8, "lastPlayed": "2026-01-06", "achievements": { "unlocked": 18, "total": 32 }, "cloud": "synced", "hasLogo": true },
+    { "appId": 1145360, "name": "Hades",                 "genre": "Roguelike",        "modes": ["Solo"],          "tags": ["Indie", "Action", "Short sessions"],      "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true },
+    { "appId": 367520,  "name": "Hollow Knight",         "genre": "Metroidvania",     "modes": ["Solo"],          "tags": ["Indie", "Hard", "Exploration"],           "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true },
+    { "appId": 1174180, "name": "Red Dead Redemption 2", "genre": "Action-adventure", "modes": ["Solo"],          "tags": ["Story", "Exploration"],                   "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true },
+    { "appId": 292030,  "name": "The Witcher 3",         "genre": "RPG",              "modes": ["Solo"],          "tags": ["Story", "Exploration"],                   "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true },
+    { "appId": 413150,  "name": "Stardew Valley",        "genre": "Simulation",       "modes": ["Solo", "Coop"],  "tags": ["Indie", "Chill"],                         "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true },
+    { "appId": 730,     "name": "Counter-Strike 2",      "genre": "FPS",              "modes": ["PvP"],           "tags": ["Competitive", "Short sessions"],          "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": false },
+    { "appId": 553850,  "name": "Helldivers 2",          "genre": "Shooter",          "modes": ["Coop"],          "tags": ["Action", "Short sessions"],               "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true },
+    { "appId": 268910,  "name": "Cuphead",               "genre": "Platformer",       "modes": ["Solo", "Coop"],  "tags": ["Indie", "Hard"],                          "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true },
+    { "appId": 220,     "name": "Half-Life 2",           "genre": "FPS",              "modes": ["Solo"],          "tags": ["Story"],                                  "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": false },
+    { "appId": 1222140, "name": "Detroit: Become Human", "genre": "Adventure",        "modes": ["Solo"],          "tags": ["Story"],                                  "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true },
+    { "appId": 271590,  "name": "Grand Theft Auto V",    "genre": "Action-adventure", "modes": ["Solo", "PvP"],   "tags": ["Exploration"],                            "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true },
+    { "appId": 8870,    "name": "BioShock Infinite",     "genre": "FPS",              "modes": ["Solo"],          "tags": ["Story"],                                  "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true },
+    { "appId": 105600,  "name": "Terraria",              "genre": "Sandbox",          "modes": ["Solo", "Coop"],  "tags": ["Indie", "Chill", "Exploration"],          "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true },
+    { "appId": 1172470, "name": "Apex Legends",          "genre": "Battle royale",    "modes": ["PvP"],           "tags": ["Competitive", "Short sessions"],          "playtimeHours": null, "lastPlayed": null, "achievements": null, "hasLogo": true, "updatePending": true }
+  ],
+  "recentlyPlayed": [504230, 1145360, 367520, 1174180, 413150, 730, 1172470],
+  "shelves": [
+    { "id": "hard-indies",  "title": "Demanding indies", "rule": { "all": [{ "field": "tags",  "op": "includes", "value": "Indie" }, { "field": "tags", "op": "includes", "value": "Hard" }] } },
+    { "id": "big-stories",  "title": "Big stories",      "rule": { "all": [{ "field": "tags",  "op": "includes", "value": "Story" }] } },
+    { "id": "online",       "title": "Online",           "rule": { "all": [{ "field": "modes", "op": "includes", "value": "PvP" }] } }
+  ],
+  "moods": [
+    { "id": "friends", "label": "Play with friends", "rule": { "any": [{ "field": "modes", "op": "includes", "value": "Coop" }, { "field": "modes", "op": "includes", "value": "PvP" }] } },
+    { "id": "story",   "label": "A story",           "rule": { "any": [{ "field": "tags", "op": "includes", "value": "Story" }] } },
+    { "id": "hard",    "label": "A challenge",       "rule": { "any": [{ "field": "tags", "op": "includes", "value": "Hard" }] } },
+    { "id": "chill",   "label": "Unwind",            "rule": { "any": [{ "field": "tags", "op": "includes", "value": "Chill" }] } },
+    { "id": "quick",   "label": "A quick game",      "rule": { "any": [{ "field": "tags", "op": "includes", "value": "Short sessions" }] } },
+    { "id": "explore", "label": "Explore",           "rule": { "any": [{ "field": "tags", "op": "includes", "value": "Exploration" }] } }
+  ]
+}

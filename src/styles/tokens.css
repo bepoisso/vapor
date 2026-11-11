@@ -1,0 +1,71 @@
+/*
+ * Nebula design tokens. Source: docs/DESIGN_SYSTEM.md and the :root block of mockups/library.html.
+ * Components reference these by name; never hard-code a color, radius or font size elsewhere.
+ */
+:root {
+  /* Color */
+  --bg: #0b0b0f;
+  --surface: #121218;
+  --surface-2: #18181f;
+  --surface-3: #1e1e26;
+  --border: #1e1e26;
+  --border-strong: #2a2a33;
+  --text: #f4f4f6;
+  --text-2: #c9c9d1;
+  --text-muted: #9b9ba6;
+  --text-on-image: #e6e6ea;
+  --text-hover: #ffffff;
+  --accent: #ffd43b;
+  --accent-ink: #0b0b0f;
+  --avatar-placeholder: #6c4fd1;
+
+  /* Translucent fills for chrome sitting over images (top bar, ghost buttons) */
+  --overlay: rgb(0 0 0 / 0.4);
+  --overlay-strong: rgb(0 0 0 / 0.45);
+  --overlay-border: rgb(255 255 255 / 0.1);
+  --overlay-border-strong: rgb(255 255 255 / 0.2);
+  --ghost: rgb(255 255 255 / 0.12);
+  --ghost-hover: rgb(255 255 255 / 0.18);
+
+  /* Typography */
+  --font-sans: "Geist Variable", system-ui, sans-serif;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-17: 17px;
+  --fs-20: 20px;
+  --fs-22: 22px;
+  --tracking-tight: -0.02em;
+  --tracking-kicker: 0.1em;
+  --tracking-label: 0.08em;
+
+  /* Spacing & layout */
+  --page-x: 48px;
+  --topbar-x: 32px;
+  --topbar-height: 76px;
+  --section-gap: 36px;
+  --title-gap: 14px;
+
+  /* Radii */
+  --radius-xs: 5px;
+  --radius-avatar: 8px;
+  --radius-sm: 9px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 22px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 350ms;
+  --shadow-lift: 0 22px 40px rgb(0 0 0 / 0.55);
+
+  /* Focus */
+  --focus-ring: 2px solid var(--accent);
+  --focus-offset: 2px;
+}

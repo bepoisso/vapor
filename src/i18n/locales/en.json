@@ -1,0 +1,23 @@
+{
+  "nav": {
+    "label": "Main",
+    "store": "Store",
+    "library": "Library",
+    "community": "Community"
+  },
+  "search": {
+    "label": "Search your library",
+    "placeholder": "Search your library",
+    "shortcut": "Ctrl K"
+  },
+  "profile": {
+    "label": "Profile"
+  },
+  "placeholder": {
+    "store": "Store",
+    "community": "Community",
+    "profile": "Profile",
+    "game": "Game page",
+    "comingSoon": "Coming soon."
+  }
+}

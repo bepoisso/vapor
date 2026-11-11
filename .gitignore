@@ -1,0 +1,21 @@
+# Dependencies & builds
+node_modules
+dist
+dist-ssr
+coverage
+*.local
+*.log
+
+# Copyrighted game art used by the reference mockup. Never commit it.
+mockups/assets/
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.sw?
