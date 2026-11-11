@@ -7,12 +7,14 @@ mod images;
 mod library;
 mod model;
 mod startup;
+mod steam;
 
 use std::time::Duration;
 
+use library::service::{LibraryService, LibraryUpdated};
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
-use tauri_specta::{Builder, collect_commands};
+use tauri_specta::{Builder, collect_commands, collect_events};
 
 /// Generated TypeScript bindings, relative to `src-tauri/`. Committed; CI checks it is up to date.
 #[cfg(any(debug_assertions, test))]
@@ -29,9 +31,11 @@ fn specta_builder() -> Builder<tauri::Wry> {
         .commands(collect_commands![
             commands::app_info,
             commands::get_library,
+            commands::get_profile,
             commands::list_shelves,
             commands::report_startup,
         ])
+        .events(collect_events![LibraryUpdated])
 }
 
 #[cfg(any(debug_assertions, test))]
@@ -48,6 +52,12 @@ fn export_bindings(builder: &Builder<tauri::Wry>) {
 pub fn run() {
     let process_start = startup::ProcessStart::now();
     let builder = specta_builder();
+    let context = tauri::generate_context!();
+    // Same folder as Tauri's `app_cache_dir`, resolved before the app starts so the library
+    // (with its cached snapshot) exists before the webview's first command or image request.
+    let cache_dir = dirs::cache_dir()
+        .unwrap_or_else(std::env::temp_dir)
+        .join(&context.config().identifier);
 
     #[cfg(debug_assertions)]
     export_bindings(&builder);
@@ -68,17 +78,27 @@ pub fn run() {
                 .build(),
         )
         .manage(process_start)
-        .manage(images::ImageStore::sample())
+        .manage(LibraryService::new(cache_dir))
         .register_asynchronous_uri_scheme_protocol(images::SCHEME, |ctx, request, responder| {
             let app = ctx.app_handle().clone();
             tauri::async_runtime::spawn_blocking(move || {
-                let store = app.state::<images::ImageStore>();
-                responder.respond(images::handle(&store, &request));
+                let library = app.state::<LibraryService>();
+                let response = match images::parse_path(request.uri().path()) {
+                    None => images::bad_request(),
+                    Some(image) => match library.image_source(&image) {
+                        Some(source) => {
+                            images::serve(&source, image.kind(), &library.thumbnail_dir())
+                        }
+                        None => images::not_found(),
+                    },
+                };
+                responder.respond(response);
             });
         })
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             builder.mount_events(app);
+            LibraryService::start_background(app.handle().clone(), &app.state::<LibraryService>());
 
             let handle = app.handle().clone();
             std::thread::spawn(move || {
@@ -92,7 +112,7 @@ pub fn run() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running Vapor");
 }
 

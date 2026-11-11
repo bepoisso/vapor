@@ -49,34 +49,37 @@ function sideBySide(left: PNG, right: PNG): PNG {
   return out;
 }
 
-await withApp(async (page) => {
-  mkdirSync(OUT_DIR, { recursive: true });
-  const viewport = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }));
-  const appShot = await screenshot(page, "app.png");
+await withApp(
+  async (page) => {
+    mkdirSync(OUT_DIR, { recursive: true });
+    const viewport = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }));
+    const appShot = await screenshot(page, "app.png");
 
-  await page.goto(MOCKUP_URL);
-  await page.waitForSelector("#library .cover");
-  const mockShot = await screenshot(page, "mockup.png");
-  await page.goto(DEV_URL);
+    await page.goto(MOCKUP_URL);
+    await page.waitForSelector("#library .cover");
+    const mockShot = await screenshot(page, "mockup.png");
+    await page.goto(DEV_URL);
 
-  const width = Math.min(appShot.width, mockShot.width);
-  const height = Math.min(appShot.height, mockShot.height);
-  const diff = new PNG({ width, height });
-  const changed = pixelmatch(
-    crop(appShot, width, height).data,
-    crop(mockShot, width, height).data,
-    diff.data,
-    width,
-    height,
-    { threshold: 0.15 },
-  );
-  writeFileSync(`${OUT_DIR}/diff.png`, PNG.sync.write(diff));
-  writeFileSync(`${OUT_DIR}/side-by-side.png`, PNG.sync.write(sideBySide(appShot, mockShot)));
+    const width = Math.min(appShot.width, mockShot.width);
+    const height = Math.min(appShot.height, mockShot.height);
+    const diff = new PNG({ width, height });
+    const changed = pixelmatch(
+      crop(appShot, width, height).data,
+      crop(mockShot, width, height).data,
+      diff.data,
+      width,
+      height,
+      { threshold: 0.15 },
+    );
+    writeFileSync(`${OUT_DIR}/diff.png`, PNG.sync.write(diff));
+    writeFileSync(`${OUT_DIR}/side-by-side.png`, PNG.sync.write(sideBySide(appShot, mockShot)));
 
-  console.log(`viewport ${viewport.width}x${viewport.height}`);
-  console.log(
-    `app ${appShot.width}x${appShot.height}, mockup ${mockShot.width}x${mockShot.height}`,
-  );
-  console.log(`pixels differing: ${((changed / (width * height)) * 100).toFixed(2)}%`);
-  console.log(`images in ${OUT_DIR}/`);
-});
+    console.log(`viewport ${viewport.width}x${viewport.height}`);
+    console.log(
+      `app ${appShot.width}x${appShot.height}, mockup ${mockShot.width}x${mockShot.height}`,
+    );
+    console.log(`pixels differing: ${((changed / (width * height)) * 100).toFixed(2)}%`);
+    console.log(`images in ${OUT_DIR}/`);
+  },
+  { sample: true },
+);

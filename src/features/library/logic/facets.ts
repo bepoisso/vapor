@@ -49,7 +49,7 @@ function countValues(games: readonly Game[], key: FacetKey): Map<string, number>
   return counts;
 }
 
-/** Facet values present in the library. Genres: most common first. */
+/** Facet values present in the library (empty when unknown). Genres: most common first. */
 export function buildFacets(games: readonly Game[]): Facet[] {
   const genres = [...countValues(games, "genre")]
     .sort(([a, countA], [b, countB]) => countB - countA || a.localeCompare(b))
@@ -63,7 +63,10 @@ export function buildFacets(games: readonly Game[]): Facet[] {
 
   return [
     { key: "genre", values: genres },
-    { key: "modes", values: MODE_ORDER },
+    {
+      key: "modes",
+      values: MODE_ORDER.filter((mode) => games.some((game) => game.modes.includes(mode))),
+    },
     { key: "tags", values: tags },
   ];
 }

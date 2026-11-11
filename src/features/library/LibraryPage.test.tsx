@@ -76,6 +76,16 @@ const libraryCount = () =>
   within(screen.getByRole("region", { name: /^Library/ })).getByText(/games?$/);
 
 describe("LibraryPage", () => {
+  // Dates render relative to "today" ("Jan 6" vs "Jan 6, 2026"): pin it. Only Date is faked so
+  // timers used by the router and user-event keep working.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 10, 11));
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("shows the most recently played game in the hero, with known stats only", async () => {
     renderLibrary();
     expect(await screen.findByText("Continue · Last played Jan 6")).toBeInTheDocument();
@@ -132,5 +142,45 @@ describe("LibraryPage", () => {
     await user.click(challenge);
     expect(challenge).toHaveAttribute("aria-pressed", "true");
     expect(friends).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("renders real Steam data without genres, modes or tags (Phase 2)", async () => {
+    const steamGames: Game[] = [
+      makeGame({
+        appId: 504230,
+        name: "Celeste",
+        installed: true,
+        playtimeMinutes: 2806,
+        lastPlayed: "2026-01-06T16:39:29Z",
+        cloud: "synced",
+        updatePending: false,
+      }),
+      makeGame({ appId: 620, name: "Portal 2", installed: true, updatePending: true }),
+    ];
+    useLibraryStore.setState({
+      status: "ready",
+      games: steamGames,
+      shelves,
+      profile: { personaName: "Flitcher", avatar: null },
+      error: null,
+    });
+    useFiltersStore.setState({
+      query: "",
+      selection: EMPTY_SELECTION,
+      sort: "name",
+      moodId: "friends",
+    });
+    render(
+      <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: ["/"] }))} />,
+    );
+
+    expect(await screen.findByText("Continue · Last played Jan 6")).toBeInTheDocument();
+    expect(screen.getByText("46.8 h · Cloud synced")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Flitcher/ })).toBeInTheDocument();
+    expect(libraryCount()).toHaveTextContent("2 games");
+    // Nothing to filter or suggest yet: facets, moods and shelves stay hidden.
+    expect(screen.queryByRole("group", { name: "Filters" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Moods" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Demanding indies" })).not.toBeInTheDocument();
   });
 });

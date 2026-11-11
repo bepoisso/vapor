@@ -144,5 +144,5 @@ await withApp(
 
     await page.evaluate(() => localStorage.removeItem("vapor.syntheticGames"));
   },
-  { release: RELEASE },
+  { release: RELEASE, sample: true },
 );

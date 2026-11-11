@@ -22,6 +22,7 @@ Performance budgets (see `CLAUDE.md`) are checked at the end of every phase, not
 - Pick the `MostRecent` account in `loginusers.vdf`; read all library folders.
 - Vapor index cache (SQLite) in the app data dir; background rescan + `notify` watcher, `library-updated` event.
 - Images: a `vapor://` protocol serving resized, disk-cached thumbnails to grids (full-size art only for the hero); dark-logo detection.
+- Text files only (no `appinfo.vdf`, owner's decision): non-games filtered by a known-ID list; genres/modes/tags arrive in Phase 4.
 - **Done when:** the Library shows the owner's installed games with real art, playtime and last played, loading from cache in under ~300 ms.
 
 ## Phase 3 — Launch & install

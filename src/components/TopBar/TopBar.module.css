@@ -127,7 +127,8 @@
 /* Profile */
 .profile {
   height: 40px;
-  padding: 0 5px;
+  padding: 0 6px;
+  color: var(--text);
   border-radius: var(--radius-md);
   background: var(--overlay);
   display: flex;
@@ -136,9 +137,14 @@
   font-weight: 600;
 }
 
+.profileNamed {
+  padding-left: 12px;
+}
+
 .avatar {
   width: 30px;
   height: 30px;
   border-radius: var(--radius-avatar);
   background: var(--avatar-placeholder);
+  object-fit: cover;
 }

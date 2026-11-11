@@ -13,9 +13,12 @@ interface FacetBoxProps {
 /** Genre / Mode / Vibe chips that filter the grid live. */
 export function FacetBox({ facets, counts, selection, onToggle }: FacetBoxProps) {
   const { t } = useTranslation();
+  // Genres, modes and tags are unknown until the Store API fills them (Phase 4).
+  const shown = facets.filter((facet) => facet.values.length > 0);
+  if (shown.length === 0) return null;
   return (
     <div className={styles.facets} role="group" aria-label={t("library.facets.label")}>
-      {facets.map((facet) => (
+      {shown.map((facet) => (
         <div
           key={facet.key}
           className={styles.facet}

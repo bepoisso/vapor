@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { BrandMark } from "./BrandMark";
+import { ProfileButton } from "./ProfileButton";
 import { SearchField } from "./SearchField";
 import styles from "./TopBar.module.css";
 import { useScrolled } from "./useScrolled";
@@ -32,10 +33,7 @@ export function TopBar() {
 
       <SearchField />
 
-      {/* Persona name and avatar come from Steam in Phase 2; never show a made-up name. */}
-      <Link to="/profile" className={styles.profile} aria-label={t("profile.label")}>
-        <span className={styles.avatar} aria-hidden="true" />
-      </Link>
+      <ProfileButton />
     </header>
   );
 }
