@@ -8,6 +8,7 @@ import "./styles/global.css";
 import "./i18n";
 import { App } from "./app/App";
 import { listenForLibraryUpdates, useLibraryStore } from "./features/library/store/libraryStore";
+import { listenForRunningGame } from "./features/library/store/sessionStore";
 import geistLatin from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url";
 
 // Start fetching the UI font now instead of at the first layout (it gates the window reveal).
@@ -23,6 +24,7 @@ document.head.append(preload);
 // Ask the backend for the library before React even renders.
 void useLibraryStore.getState().load();
 listenForLibraryUpdates();
+listenForRunningGame();
 
 const container = document.getElementById("root");
 if (!container) throw new Error("#root is missing from index.html");

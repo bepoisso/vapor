@@ -32,7 +32,10 @@
     "kicker": "Continue · Last played {{date}}",
     "kickerNoDate": "Continue",
     "play": "Play",
+    "launching": "Launching…",
+    "playing": "Playing",
     "install": "Install",
+    "steamError": "Couldn't reach Steam: {{message}}",
     "gamePage": "Game page",
     "achievements": "{{unlocked}}/{{total}} achievements",
     "cloud": {
@@ -87,7 +90,9 @@
     "emptyQuery": "No game matches “{{query}}”."
   },
   "card": {
-    "play": "Play {{name}}"
+    "play": "Play {{name}}",
+    "launching": "Launching {{name}}…",
+    "playing": "{{name}} is running"
   },
   "rules": {
     "and": "+",

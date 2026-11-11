@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import buttons from "@/components/Button/buttons.module.css";
 import type { Game } from "@/lib/bindings";
-import { installGame, playGame } from "../actions";
 import { formatPlaytime, formatShortDate } from "../logic/format";
+import { useSessionStore } from "../store/sessionStore";
 import styles from "./Hero.module.css";
+import { PlayButton } from "./PlayButton";
 
 interface HeroProps {
   game: Game;
@@ -16,6 +16,10 @@ export function Hero({ game }: HeroProps) {
   const { t } = useTranslation();
   const lastPlayed = formatShortDate(game.lastPlayed);
   const notInstalled = game.installed === false;
+  const install = useSessionStore((state) => state.install);
+  const error = useSessionStore((state) =>
+    state.error?.appId === game.appId ? state.error.message : null,
+  );
 
   // Only values that are known; never a made-up stat.
   const stats = [
@@ -48,19 +52,12 @@ export function Hero({ game }: HeroProps) {
             <button
               type="button"
               className={`${buttons.base} ${buttons.primary}`}
-              onClick={() => installGame(game.appId)}
+              onClick={() => void install(game.appId)}
             >
               {t("hero.install")}
             </button>
           ) : (
-            <button
-              type="button"
-              className={`${buttons.base} ${buttons.primary}`}
-              onClick={() => playGame(game.appId)}
-            >
-              <Play size={16} fill="currentColor" strokeWidth={0} aria-hidden="true" />
-              {t("hero.play")}
-            </button>
+            <PlayButton game={game} variant="hero" />
           )}
           <Link
             to="/game/$appId"
@@ -71,6 +68,11 @@ export function Hero({ game }: HeroProps) {
           </Link>
           {stats.length > 0 && <span className={styles.meta}>{stats.join(" · ")}</span>}
         </div>
+        {error && (
+          <p className={styles.error} role="alert">
+            {t("hero.steamError", { message: error })}
+          </p>
+        )}
       </div>
     </header>
   );

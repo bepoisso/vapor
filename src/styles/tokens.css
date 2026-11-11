@@ -17,6 +17,8 @@
   --text-hover: #ffffff;
   --accent: #ffd43b;
   --accent-ink: #0b0b0f;
+  /* Accent at low opacity: busy/"Playing" state of a primary button. */
+  --accent-soft: rgb(255 212 59 / 0.16);
   --avatar-placeholder: #6c4fd1;
   --surface-quiet: #15151b;
   --surface-rule: #17171e;

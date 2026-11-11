@@ -49,3 +49,4 @@ strip = true
 
 [target."cfg(windows)".dependencies]
 winreg = "0.56"
+sysinfo = { version = "0.40", default-features = false, features = ["system"] }

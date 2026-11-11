@@ -53,3 +53,8 @@ Short log of decisions taken with the owner. Newest last. Each entry: what, why,
 ## 2026-11-11 — Window shown immediately
 - The window opens **visible right away** on the app background (`#0B0B0F`); the page content fades in (opacity, 250 ms) once the library has rendered with data and the font is ready. Chosen by the owner over "keep the window hidden until the page is fully rendered".
 - Why: ~450 ms of startup is WebView2 starting before any app code runs, so a window that waits for the rendered page can never appear in < 300 ms. Showing the dark window first makes the app feel instant, and the fade avoids a half-filled page popping in.
+
+## 2026-11-11 — Phase 3: launching through Steam
+- **How a game starts**: Vapor runs `steam.exe -- steam://rungameid/<appid>`, exactly what Windows' `steam://` URL handler does (`"steam.exe" -- "%1"`, verified in the registry). Installs use `steam://install/<appid>`, which opens Steam's own install dialog (drive, size): the one Steam window that is expected.
+- **Steam not running**: `-silent` is added, so Steam starts in the tray without its main window. "Running" = `HKCU\Software\Valve\Steam\ActiveProcess\pid` is non-zero and that process is `steam.exe` (the PID is stale after a crash). When unsure, Vapor passes `-silent` anyway (harmless for a running Steam).
+- **Running indicator**: `HKCU\Software\Valve\Steam\RunningAppID` is polled every second on Windows and changes are sent as a `running-game-changed` event. Play buttons show "Launching…" from the click until Steam reports the game (up to 60 s, then reset), then "Playing" while it runs. Other platforms: launch works, no indicator yet.

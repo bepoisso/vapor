@@ -28,6 +28,7 @@ Performance budgets (see `CLAUDE.md`) are checked at the end of every phase, not
 
 ## Phase 3 — Launch & install
 - `launch` / `install` via `steam://` URLs, start Steam with `-silent` if needed, running-state indicator on the Play button.
+- Implemented: `launch_game` / `install_game` / `get_running_game` commands, `running-game-changed` event, Play button states (Play, Launching…, Playing).
 - **Done when:** clicking Play starts a game with no Steam window appearing.
 
 ## Phase 4 — Enrichment
