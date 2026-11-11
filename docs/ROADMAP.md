@@ -26,10 +26,11 @@ Performance budgets (see `CLAUDE.md`) are checked at the end of every phase, not
 - **Done when:** the Library shows the owner's installed games with real art, playtime and last played, loading from cache in under ~300 ms.
 - Delivered: 61 games over 4 library folders, all with local art. Release build: window on screen in ~50 ms; from the start of our script to the library painted ~135 ms (cache read + render); ~610 ms in total from process start, of which ~425 ms is WebView2 starting.
 
-## Phase 3 — Launch & install
+## Phase 3 — Launch & install ✅
 - `launch` / `install` via `steam://` URLs, start Steam with `-silent` if needed, running-state indicator on the Play button.
 - Implemented: `launch_game` / `install_game` / `get_running_game` commands, `running-game-changed` event, Play button states (Play, Launching…, Playing).
 - **Done when:** clicking Play starts a game with no Steam window appearing.
+- Verified by the owner: the game starts with no Steam window; only Steam's own small "launching" notice shows (Steam displays it for every `steam://` launch, no supported way to hide it).
 
 ## Phase 4 — Enrichment
 - Settings page: Steam API key (keychain), Steam path override, Steam account.
