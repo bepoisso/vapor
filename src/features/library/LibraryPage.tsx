@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import buttons from "@/components/Button/buttons.module.css";
-import { markDataReady, revealWindow } from "@/lib/startup";
+import { markDataReady, revealContent } from "@/lib/startup";
 import { Hero } from "./components/Hero";
 import { LibrarySection } from "./components/LibrarySection";
 import { MoodModule } from "./components/MoodModule";
@@ -20,12 +20,12 @@ export function LibraryPage() {
   const error = useLibraryStore((state) => state.error);
   const load = useLibraryStore((state) => state.load);
 
-  // The window stays hidden until the first render with data (no empty flash).
+  // The content fades in once rendered with data (no half-filled page flashing in).
   const settled = status === "ready" || status === "error";
   useEffect(() => {
     if (!settled) return;
     markDataReady();
-    void revealWindow();
+    void revealContent();
   }, [settled]);
 
   if (status === "error") {

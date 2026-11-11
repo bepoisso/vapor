@@ -6,7 +6,7 @@ use specta::Type;
 
 pub type AppId = u32;
 
-#[derive(Debug, Clone, Serialize, Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct Game {
     pub app_id: AppId,
@@ -33,13 +33,13 @@ pub enum Mode {
     PvP,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct Achievements {
     pub unlocked: u32,
     pub total: u32,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub enum CloudStatus {
     Synced,
@@ -49,11 +49,25 @@ pub enum CloudStatus {
 }
 
 /// URLs served by the `vapor` protocol (see `images.rs`). `null` when the art does not exist.
-#[derive(Debug, Clone, Default, Serialize, Type)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
 pub struct GameImages {
+    /// Cover thumbnail, sized for grids and shelves.
     pub cover: Option<String>,
+    /// Full-size banner, for the hero.
     pub hero: Option<String>,
+    /// Banner thumbnail, for wide cards.
+    pub hero_small: Option<String>,
+    /// Transparent logo; `null` too when it would be unreadable on a dark background.
     pub logo: Option<String>,
+}
+
+/// The Steam account whose library is shown.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct Profile {
+    pub persona_name: Option<String>,
+    pub avatar: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]

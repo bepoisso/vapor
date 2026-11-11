@@ -17,12 +17,14 @@ Performance budgets (see `CLAUDE.md`) are checked at the end of every phase, not
 - **Done when:** side-by-side with the mockup at 1440px it matches visually; mood pills and facet chips behave as in the mockup; rule engine tests pass.
 - Delivered: `get_library` / `list_shelves` commands (sample data), `vapor://` image protocol, startup tracing, `pnpm compare:mockup` and `pnpm perf:*` tools.
 
-## Phase 2 — Real Steam data (local)
+## Phase 2 — Real Steam data (local) ✅
 - Rust: find Steam, parse `libraryfolders.vdf`, `appmanifest_*.acf`, `loginusers.vdf`, `localconfig.vdf`; resolve images in `librarycache` with the recursive pattern rules.
 - Pick the `MostRecent` account in `loginusers.vdf`; read all library folders.
-- Vapor index cache (SQLite) in the app data dir; background rescan + `notify` watcher, `library-updated` event.
+- Vapor index cache (a JSON snapshot of raw Steam facts, see DECISIONS.md) in the cache dir; background rescan + `notify` watcher, `library-updated` event.
 - Images: a `vapor://` protocol serving resized, disk-cached thumbnails to grids (full-size art only for the hero); dark-logo detection.
+- Text files only (no `appinfo.vdf`, owner's decision): non-games filtered by a known-ID list; genres/modes/tags arrive in Phase 4.
 - **Done when:** the Library shows the owner's installed games with real art, playtime and last played, loading from cache in under ~300 ms.
+- Delivered: 61 games over 4 library folders, all with local art. Release build: window on screen in ~50 ms; from the start of our script to the library painted ~135 ms (cache read + render); ~610 ms in total from process start, of which ~425 ms is WebView2 starting.
 
 ## Phase 3 — Launch & install
 - `launch` / `install` via `steam://` URLs, start Steam with `-silent` if needed, running-state indicator on the Play button.
@@ -40,6 +42,8 @@ Performance budgets (see `CLAUDE.md`) are checked at the end of every phase, not
 ## Phase 6 — Performance & polish
 - Profile with a synthetic library of 3,000 games; enforce the budgets in CI where measurable.
 - Empty and error states, offline mode.
+- Startup: ~90 ms of JS evaluation before the first render (React, router, i18next). Candidates: a minimal hash router, a typed English-only string table instead of i18next.
+- Memory: WebView2 uses ~260 MB private memory with real art (GPU process ~150 MB). Investigate texture use (thumbnail sizes, hero size) or revisit the budget.
 - **Done when:** every budget in `CLAUDE.md` is met on the owner's machine.
 
 ## Phase 7 — Distribution

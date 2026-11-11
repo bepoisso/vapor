@@ -18,8 +18,8 @@ Approach: **local-first** (read the Steam install on disk — fast, offline, no 
   - Option B (no key): local files only (licenses are in binary caches — avoid). Fall back to installed + recently played.
 
 ## 3. User identity, playtime, last played
-- `config/loginusers.vdf` → logged-in accounts: SteamID64, `PersonaName`, `MostRecent`. Pick the most recent.
-- `userdata/<accountId>/config/localconfig.vdf` → per-app `LastPlayed` (unix time) and `Playtime` (minutes) **[verify keys and path inside the file]**. `accountId` = SteamID64 − 76561197960265728.
+- `config/loginusers.vdf` → logged-in accounts: SteamID64, `PersonaName`, `MostRecent`, `Timestamp`. Pick `MostRecent`, else the latest `Timestamp` (`MostRecent` is absent when only one account exists). Avatar: `config/avatarcache/<steamid64>.png`.
+- `userdata/<accountId>/config/localconfig.vdf` → `UserLocalConfigStore/Software/Valve/Steam/apps/<appid>` with `LastPlayed` (unix seconds) and `Playtime` (minutes), plus `cloud/last_sync_state` (`synchronized`). **Verified** on the owner's machine (Celeste: 2806 min, last played Jan 6 2026). `accountId` = SteamID64 − 76561197960265728.
 - User collections (Steam "categories" like FAVORITES) live in `userdata/<accountId>/config/cloudstorage/cloud-storage-namespace-1.json` under keys starting with `user-collections.` **[verify]**. Import them read-only as manual shelves; never write to Steam's files.
 
 ## 4. Images (the art in the mockup comes from here)
@@ -47,7 +47,7 @@ Approach: **local-first** (read the Steam install on disk — fast, offline, no 
 - Install: `steam://install/<appid>`. Uninstall: `steam://uninstall/<appid>`. Validate: `steam://validate/<appid>`.
 - To keep Steam out of sight: if Steam isn't running, start it first with `steam.exe -silent` (tray only), then send the `steam://` URL.
 - **Honest limitation:** most games use Steam DRM / Steamworks and require the Steam client process running. Vapor replaces the *UI*, not the client. State this clearly in the README for end users.
-- Detect "running" state: watch for the game's process (from `installdir`) or poll `HKCU\Software\Valve\Steam\RunningAppID` on Windows **[verify]**.
+- Detect "running" state: watch for the game's process (from `installdir`) or poll `HKCU\Software\Valve\Steam\RunningAppID` on Windows (**verified**: exists, `0` when nothing runs).
 
 ## 8. Auth & API key
 - Identity: Steam **OpenID 2.0** (`https://steamcommunity.com/openid`) in a webview → returns the SteamID64. No password ever touches Vapor.

@@ -1,6 +1,7 @@
 /**
  * Startup time of the release build: launches `target/release/vapor.exe` several times with
  * `VAPOR_TRACE_STARTUP` and prints the median of each stage (see `src-tauri/src/startup.rs`).
+ * The dark window itself is on screen much earlier (~50 ms on the owner's machine).
  * Build first: `pnpm tauri build --no-bundle`. Windows only.
  *
  *   pnpm perf:startup [runs]
@@ -20,7 +21,7 @@ interface Trace {
   scriptToLibrary: number;
   libraryToRender: number;
   renderToFont: number;
-  fontToShown: number;
+  fontToContent: number;
   total: number;
 }
 
@@ -57,7 +58,7 @@ const stages: (keyof Trace)[] = [
   "scriptToLibrary",
   "libraryToRender",
   "renderToFont",
-  "fontToShown",
+  "fontToContent",
   "total",
 ];
 console.log(`release build, ${traces.length} runs (first run includes cold caches)`);

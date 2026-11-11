@@ -16,8 +16,8 @@ export function WideCard({ game }: WideCardProps) {
 
   return (
     <article className={styles.wide}>
-      {game.images.hero && (
-        <img className={styles.image} src={game.images.hero} alt="" decoding="async" />
+      {game.images.heroSmall && (
+        <img className={styles.image} src={game.images.heroSmall} alt="" decoding="async" />
       )}
       <span className={styles.scrim} />
       <Link to="/game/$appId" params={{ appId: String(game.appId) }} className={styles.link}>

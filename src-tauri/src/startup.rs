@@ -1,5 +1,5 @@
 //! Startup timing. Set `VAPOR_TRACE_STARTUP=<file>` to append one JSON line per launch with the
-//! time spent in each startup stage. Used to check the "< 300 ms to a rendered library" budget.
+//! time spent in each startup stage (`pnpm perf:startup` runs it several times).
 
 use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -30,12 +30,13 @@ fn epoch_ms(time: SystemTime) -> f64 {
 pub struct FrontendMarks {
     pub navigation_start: f64,
     pub script_start: f64,
-    /// `get_library` and `list_shelves` resolved.
+    /// `get_library`, `list_shelves` and `get_profile` resolved.
     pub library_loaded: f64,
     /// The page committed a render with the data.
     pub data_ready: f64,
     pub font_ready: f64,
-    pub window_shown: f64,
+    /// The content was revealed and a frame painted.
+    pub content_shown: f64,
 }
 
 #[derive(Debug, Serialize)]
@@ -46,7 +47,8 @@ struct Trace {
     script_to_library: f64,
     library_to_render: f64,
     render_to_font: f64,
-    font_to_shown: f64,
+    font_to_content: f64,
+    /// Process start to the library painted.
     total: f64,
 }
 
@@ -62,8 +64,8 @@ pub fn record(process_start: &ProcessStart, marks: &FrontendMarks) {
         script_to_library: marks.library_loaded - marks.script_start,
         library_to_render: marks.data_ready - marks.library_loaded,
         render_to_font: marks.font_ready - marks.data_ready,
-        font_to_shown: marks.window_shown - marks.font_ready,
-        total: process_to_navigation + marks.window_shown,
+        font_to_content: marks.content_shown - marks.font_ready,
+        total: process_to_navigation + marks.content_shown,
     };
     let Ok(line) = serde_json::to_string(&trace) else {
         return;

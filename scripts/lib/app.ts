@@ -41,6 +41,8 @@ async function findAppPage(browser: Browser): Promise<Page> {
 export interface AppOptions {
   /** Run `target/release/vapor.exe` (build it first) instead of `pnpm tauri dev`. */
   release?: boolean;
+  /** Serve the mockup's sample library instead of the local Steam install (reproducible). */
+  sample?: boolean;
 }
 
 /**
@@ -49,7 +51,7 @@ export interface AppOptions {
  */
 export async function withApp(
   run: (page: Page) => Promise<void>,
-  { release = false }: AppOptions = {},
+  { release = false, sample = false }: AppOptions = {},
 ): Promise<void> {
   const app = spawn(release ? resolve(RELEASE_EXE) : "pnpm tauri dev", {
     shell: !release,
@@ -57,6 +59,7 @@ export async function withApp(
     env: {
       ...process.env,
       WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${CDP_PORT}`,
+      ...(sample ? { VAPOR_LIBRARY: "sample" } : {}),
     },
   });
   let browser: Browser | undefined;

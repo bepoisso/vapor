@@ -1,5 +1,7 @@
 //! Errors returned by Tauri commands. Serialized as a plain message for the frontend.
 
+use std::path::PathBuf;
+
 use serde::Serialize;
 use specta::Type;
 
@@ -7,6 +9,22 @@ use specta::Type;
 pub enum Error {
     #[error("failed to read the sample library: {0}")]
     SampleData(#[from] serde_json::Error),
+
+    #[error("Steam installation not found")]
+    SteamNotFound,
+
+    #[error("failed to read {path}: {source}")]
+    Io {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+
+    #[error("failed to parse {path}: {message}")]
+    Vdf { path: PathBuf, message: String },
+
+    #[error("failed to process image {path}: {message}")]
+    Image { path: PathBuf, message: String },
 }
 
 /// What the frontend receives when a command fails.

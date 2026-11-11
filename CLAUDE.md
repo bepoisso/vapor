@@ -20,14 +20,16 @@ Vapor: an open-source desktop client for Steam (library browsing + game launchin
 ## Commands
 - `pnpm tauri dev` run the app · `pnpm test` · `pnpm lint` · `pnpm typecheck` · `pnpm format`
 - In `src-tauri/`: `cargo test` · `cargo clippy --all-targets -- -D warnings` · `cargo fmt`
+- `VAPOR_LIBRARY=sample pnpm tauri dev`: run on the mockup's sample library instead of the local Steam install. Vapor's cache (library snapshot, thumbnails) lives in the OS cache dir under `io.github.bepoisso.vapor`.
+- In `src-tauri/`: `cargo test real_install -- --ignored --nocapture` prints what a scan of this machine's Steam install finds.
 - `pnpm compare:mockup`: screenshots the real app next to `mockups/library.html` (same engine, 1440 px) into `artifacts/compare/`.
 - `pnpm perf:library [games] [--release]`: scroll smoothness and interaction latency with a synthetic library. `pnpm perf:startup`: startup stages of the release build. Build the release first with `pnpm tauri build --no-bundle`.
 
 ## Performance budgets (checked at the end of every phase)
-- Window visible with the library rendered: **< 300 ms** from Vapor's cache.
+- Window on screen: **< 300 ms**. Library painted from Vapor's cache: as close to WebView2's own startup as possible (`pnpm perf:startup` shows each stage; WebView2 alone takes ~450 ms on the owner's machine).
 - Scroll: **60 fps** with 2,000 games. Interactions (chips, pills, search): **< 16 ms**.
 - RAM **< 150 MB**, installer **< 15 MB**.
-- The window starts hidden with the `--bg` color and is revealed after the first paint (`src/lib/window.ts`). Animate only `transform`/`opacity`. Serve resized thumbnails, not full-size art, to grids.
+- The window opens immediately on the `--bg` color; the content fades in once rendered with data (`src/lib/startup.ts`). Animate only `transform`/`opacity`. Serve resized thumbnails, not full-size art, to grids.
 
 ## Conventions
 - English everywhere: code, comments, commits, docs and the app UI. UI strings go through the i18n layer (`en` only).
@@ -35,7 +37,7 @@ Vapor: an open-source desktop client for Steam (library browsing + game launchin
 - Small components, one per file. Feature folders: `src/features/library/…`.
 - Rust: `clippy` clean, errors via `thiserror`, no `unwrap()` on user data or file I/O.
 - Accessibility: real `<button>`/`<a>`, visible focus ring (accent color), `aria-pressed` on toggle chips, alt text on logos.
-- Performance matters (the whole point is "faster than Steam"): virtualize long grids, lazy-load images, keep first paint under ~300 ms on cached data.
+- Performance matters (the whole point is "faster than Steam"): virtualize long grids, lazy-load images, keep the startup path free of Steam file reads (serve the cache, scan in the background).
 
 ## Don'ts
 - Don't commit anything from `mockups/assets/` or any copyrighted game art to a public remote. Suggested `.gitignore` line: `mockups/assets/`.

@@ -17,6 +17,16 @@ body {
   overflow-x: hidden;
 }
 
+/* The window opens on the bare background; content fades in once it has data (lib/startup.ts). */
+#root {
+  opacity: 0;
+}
+
+html[data-ready] #root {
+  opacity: 1;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
 a {
   color: inherit;
   text-decoration: none;

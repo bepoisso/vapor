@@ -2,6 +2,7 @@ import { Sparkle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Game } from "@/lib/bindings";
 import { useNow } from "../hooks/useNow";
+import { matchesRule } from "../logic/rules";
 import { pickSuggestions } from "../logic/suggestions";
 import { MOODS } from "../moods";
 import { useFiltersStore } from "../store/filtersStore";
@@ -24,6 +25,11 @@ export function MoodModule({ games }: MoodModuleProps) {
   const now = useNow();
   const mood = MOODS.find((candidate) => candidate.id === moodId) ?? MOODS[0];
   const suggestions = mood ? pickSuggestions(games, mood.rule, now, SUGGESTIONS) : [];
+  // Moods rely on tags and modes; hide the module until some game has them (Phase 4).
+  const anyMoodMatches = MOODS.some((candidate) =>
+    games.some((game) => matchesRule(game, candidate.rule, now.getTime())),
+  );
+  if (!anyMoodMatches) return null;
 
   return (
     <section className={styles.mood} aria-labelledby="mood-title">
