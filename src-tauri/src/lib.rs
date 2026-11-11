@@ -9,8 +9,6 @@ mod model;
 mod startup;
 mod steam;
 
-use std::time::Duration;
-
 use library::service::{LibraryService, LibraryUpdated};
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
@@ -19,10 +17,6 @@ use tauri_specta::{Builder, collect_commands, collect_events};
 /// Generated TypeScript bindings, relative to `src-tauri/`. Committed; CI checks it is up to date.
 #[cfg(any(debug_assertions, test))]
 const BINDINGS_PATH: &str = "../src/lib/bindings.ts";
-
-/// The main window starts hidden and the frontend reveals it after its first paint. If the
-/// frontend never does (e.g. a crash during boot), show it anyway after this delay.
-const SHOW_WINDOW_FALLBACK: Duration = Duration::from_secs(3);
 
 fn specta_builder() -> Builder<tauri::Wry> {
     Builder::<tauri::Wry>::new()
@@ -71,7 +65,8 @@ pub fn run() {
                 let _ = window.set_focus();
             }
         }))
-        // Visibility is driven by the frontend (see SHOW_WINDOW_FALLBACK), never restored.
+        // The window always opens visible (dark background, content fades in); size and position
+        // are restored, visibility is not.
         .plugin(
             tauri_plugin_window_state::Builder::new()
                 .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
@@ -99,17 +94,6 @@ pub fn run() {
         .setup(move |app| {
             builder.mount_events(app);
             LibraryService::start_background(app.handle().clone(), &app.state::<LibraryService>());
-
-            let handle = app.handle().clone();
-            std::thread::spawn(move || {
-                std::thread::sleep(SHOW_WINDOW_FALLBACK);
-                if let Some(window) = handle.get_webview_window("main")
-                    && !window.is_visible().unwrap_or(true)
-                {
-                    let _ = window.show();
-                }
-            });
-
             Ok(())
         })
         .run(context)

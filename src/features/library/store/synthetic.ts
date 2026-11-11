@@ -4,15 +4,15 @@ const STORAGE_KEY = "vapor.syntheticGames";
 
 /**
  * Stress test for the performance budgets (`pnpm perf:library`):
- * `localStorage.setItem("vapor.syntheticGames", "3000")` then reload to pad the library with
- * copies of the sample games. Works in release builds too, so they can be measured; nothing
- * sets the key in normal use.
+ * `sessionStorage.setItem("vapor.syntheticGames", "3000")` then reload to pad the library with
+ * copies of its games. Session storage dies with the app, so an interrupted run can never leave
+ * a padded library behind. Works in release builds too, so they can be measured.
  */
 export function withSyntheticGames(games: readonly Game[]): readonly Game[] {
   if (games.length === 0) return games;
   let target = 0;
   try {
-    target = Number(localStorage.getItem(STORAGE_KEY) ?? 0);
+    target = Number(sessionStorage.getItem(STORAGE_KEY) ?? 0);
   } catch {
     return games;
   }

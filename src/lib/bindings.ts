@@ -58,12 +58,13 @@ export type Field = "genre" | "modes" | "tags" | "installed" | "playtimeMinutes"
 export type FrontendMarks = {
 	navigationStart: number | null,
 	scriptStart: number | null,
-	/**  `get_library` and `list_shelves` resolved. */
+	/**  `get_library`, `list_shelves` and `get_profile` resolved. */
 	libraryLoaded: number | null,
 	/**  The page committed a render with the data. */
 	dataReady: number | null,
 	fontReady: number | null,
-	windowShown: number | null,
+	/**  The content was revealed and a frame painted. */
+	contentShown: number | null,
 };
 
 export type Game = {

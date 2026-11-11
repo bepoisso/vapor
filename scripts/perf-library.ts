@@ -108,7 +108,7 @@ function measureInteraction(
 await withApp(
   async (page) => {
     await page.evaluate(
-      (count) => localStorage.setItem("vapor.syntheticGames", String(count)),
+      (count) => sessionStorage.setItem("vapor.syntheticGames", String(count)),
       GAMES,
     );
     await page.reload();
@@ -141,8 +141,6 @@ await withApp(
       return heap ? Math.round(heap.usedJSHeapSize / 1024 / 1024) : null;
     });
     console.log(`JS heap: ${memory ?? "n/a"} MB`);
-
-    await page.evaluate(() => localStorage.removeItem("vapor.syntheticGames"));
   },
   { release: RELEASE, sample: true },
 );

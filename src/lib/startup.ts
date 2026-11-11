@@ -1,11 +1,11 @@
 import { isTauri } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { commands } from "./bindings";
 
 /**
- * Startup sequence. The native window is created hidden with the app background color; it is
- * revealed once the library has rendered with data, the font is ready and a frame was painted.
- * Timings go to the backend, which logs them when `VAPOR_TRACE_STARTUP` is set.
+ * Startup sequence. The native window opens right away with the app background color; the page
+ * content stays transparent until the library has rendered with data and the font is ready,
+ * then fades in (`html[data-ready]` in global.css). Timings go to the backend, which logs them
+ * when `VAPOR_TRACE_STARTUP` is set.
  *
  * Import this module first in `main.tsx` so `scriptStart` is as early as possible.
  */
@@ -16,7 +16,7 @@ let dataReady: number | null = null;
 let fontReady: number | null = null;
 let revealed = false;
 
-/** Upper bound on how long the font may delay the reveal. It is bundled, so this is rare. */
+/** Upper bound on how long the font may delay the reveal. It is preloaded, so this is rare. */
 const FONT_WAIT_MS = 200;
 /** Reveal anyway if the page never reports data (e.g. another route, or a stuck load). */
 const REVEAL_FALLBACK_MS = 1500;
@@ -41,26 +41,27 @@ function nextPaint(): Promise<void> {
   });
 }
 
-export async function revealWindow(): Promise<void> {
-  if (revealed || !isTauri()) return; // Plain browser: `pnpm dev` or tests.
+export async function revealContent(): Promise<void> {
+  if (revealed) return;
   revealed = true;
   await waitForAppFont();
   fontReady = performance.now();
+  document.documentElement.dataset.ready = "";
   await nextPaint();
-  await getCurrentWindow().show();
-  const windowShown = performance.now();
+  const contentShown = performance.now();
+  if (!isTauri()) return; // Plain browser: `pnpm dev` or tests.
   commands
     .reportStartup({
       navigationStart: performance.timeOrigin,
       scriptStart,
-      libraryLoaded: libraryLoaded ?? windowShown,
-      dataReady: dataReady ?? windowShown,
-      fontReady: fontReady ?? windowShown,
-      windowShown,
+      libraryLoaded: libraryLoaded ?? contentShown,
+      dataReady: dataReady ?? contentShown,
+      fontReady,
+      contentShown,
     })
     .catch(() => undefined);
 }
 
 export function scheduleRevealFallback(): void {
-  setTimeout(() => void revealWindow(), REVEAL_FALLBACK_MS);
+  setTimeout(() => void revealContent(), REVEAL_FALLBACK_MS);
 }

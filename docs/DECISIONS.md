@@ -49,3 +49,7 @@ Short log of decisions taken with the owner. Newest last. Each entry: what, why,
 - **Images**: covers and wide cards get JPEG thumbnails (360 and 720 px wide), generated on first request and cached in `<cache dir>/thumbnails/`. The hero gets the original banner. Logos whose opaque pixels average below luminance 70/255 count as unreadable on the dark UI, and the hero shows the name instead (6 of the owner's 61 games, e.g. F1 22, The Lab).
 - **Freshness**: startup serves the cached snapshot; a background scan and a file watcher on manifests, `loginusers.vdf` and `localconfig.vdf` rescan Steam and emit `library-updated` when something changed.
 - `VAPOR_LIBRARY=sample` serves the mockup's sample library instead of Steam. `pnpm compare:mockup` and `pnpm perf:library` use it so their results are reproducible.
+
+## 2026-11-11 — Window shown immediately
+- The window opens **visible right away** on the app background (`#0B0B0F`); the page content fades in (opacity, 250 ms) once the library has rendered with data and the font is ready. Chosen by the owner over "keep the window hidden until the page is fully rendered".
+- Why: ~450 ms of startup is WebView2 starting before any app code runs, so a window that waits for the rendered page can never appear in < 300 ms. Showing the dark window first makes the app feel instant, and the fade avoids a half-filled page popping in.
