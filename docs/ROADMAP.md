@@ -32,15 +32,17 @@ Performance budgets (see `CLAUDE.md`) are checked at the end of every phase, not
 - **Done when:** clicking Play starts a game with no Steam window appearing.
 - Verified by the owner: the game starts with no Steam window; only Steam's own small "launching" notice shows (Steam displays it for every `steam://` launch, no supported way to hide it).
 
-## Phase 4 — Enrichment
+## Phase 4 — Enrichment ✅
 - Settings page: Steam API key (keychain), Steam path override, Steam account.
 - Owned games via `GetOwnedGames`; genres/categories via Store API (lazy, cached); achievements.
 - Vibe-tag mapping file + user tags.
 - Implemented: Settings (API key in the OS keychain, account, Steam folder, Store opt-in), owned games and achievements (Web API), Store genres/modes (opt-in), vibe mapping file, tag editor.
 - **Done when:** not-installed owned games appear (with Install), facets/moods use real genres/modes.
+- Verified on the owner's machine: 197 owned games listed once the API key was saved. Genres/modes need the Store opt-in, which the owner turns on in Settings.
 
-## Phase 5 — Smart shelves editing
+## Phase 5 — Smart shelves editing ✅
 - Rule builder modal, "Save as shelf" from facets, reorder/rename/delete, import Steam collections read-only.
+- Delivered: shelves.json persistence, rule builder dialog (all/any, multi-value rows, live preview), shelf menu (edit, move up/down, delete), Save as shelf, Steam collections as read-only rows.
 
 ## Phase 6 — Performance & polish
 - Profile with a synthetic library of 3,000 games; enforce the budgets in CI where measurable.

@@ -17,6 +17,7 @@ export function LibraryPage() {
   const status = useLibraryStore((state) => state.status);
   const games = useLibraryStore((state) => state.games);
   const shelves = useLibraryStore((state) => state.shelves);
+  const collections = useLibraryStore((state) => state.collections);
   const error = useLibraryStore((state) => state.error);
   const load = useLibraryStore((state) => state.load);
 
@@ -57,7 +58,7 @@ export function LibraryPage() {
           {heroGame ? <Hero game={heroGame} /> : <div className={styles.heroSpacer} />}
           <RecentlyPlayed games={recent} />
           <MoodModule games={games} />
-          <SmartShelves shelves={shelves} games={games} />
+          <SmartShelves shelves={shelves} collections={collections} games={games} />
           <LibrarySection games={games} />
         </>
       )}

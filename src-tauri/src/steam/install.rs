@@ -60,6 +60,12 @@ impl SteamInstall {
             .join("config")
     }
 
+    pub fn collections_file(&self, steam_id64: u64) -> PathBuf {
+        self.user_config_dir(steam_id64)
+            .join("cloudstorage")
+            .join("cloud-storage-namespace-1.json")
+    }
+
     pub fn library_cache_dir(&self) -> PathBuf {
         self.root.join("appcache").join("librarycache")
     }

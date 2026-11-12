@@ -14,13 +14,15 @@ use tauri_specta::Event;
 use crate::enrichment::service::EnrichmentService;
 use crate::error::{CommandError, CommandResult, Error};
 use crate::library::service::{LibraryService, LibraryUpdated};
+use crate::library::shelves::ShelfStore;
+use crate::library::snapshot;
 use crate::library::tags::Tagging;
-use crate::library::{self, snapshot};
 use crate::model::{AppId, Game, Profile, SmartShelf};
 use crate::sessions::GameSessions;
 use crate::settings::{self, SettingsStore};
 use crate::startup::{self, FrontendMarks, ProcessStart};
 use crate::steam::client::SteamAction;
+use crate::steam::collections::SteamCollection;
 use crate::steam::{SteamInstall, users};
 use crate::web::HttpClient;
 
@@ -129,8 +131,44 @@ pub async fn get_running_game(sessions: State<'_, GameSessions>) -> CommandResul
 
 #[tauri::command]
 #[specta::specta]
-pub async fn list_shelves() -> CommandResult<Vec<SmartShelf>> {
-    Ok(library::shelves::defaults())
+pub async fn list_shelves(shelves: State<'_, ShelfStore>) -> CommandResult<Vec<SmartShelf>> {
+    Ok(shelves.list())
+}
+
+/// Creates (empty `id`) or updates a smart shelf. Returns every shelf, in order.
+#[tauri::command]
+#[specta::specta]
+pub async fn save_shelf(
+    shelves: State<'_, ShelfStore>,
+    shelf: SmartShelf,
+) -> CommandResult<Vec<SmartShelf>> {
+    Ok(shelves.save(shelf)?)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn delete_shelf(
+    shelves: State<'_, ShelfStore>,
+    id: String,
+) -> CommandResult<Vec<SmartShelf>> {
+    Ok(shelves.delete(&id)?)
+}
+
+/// Puts the shelves in the order of `ids`.
+#[tauri::command]
+#[specta::specta]
+pub async fn reorder_shelves(
+    shelves: State<'_, ShelfStore>,
+    ids: Vec<String>,
+) -> CommandResult<Vec<SmartShelf>> {
+    Ok(shelves.reorder(&ids)?)
+}
+
+/// The account's Steam collections, read-only.
+#[tauri::command]
+#[specta::specta]
+pub async fn list_collections(app: AppHandle) -> CommandResult<Vec<SteamCollection>> {
+    Ok(app.state::<LibraryService>().collections())
 }
 
 /// Receives the frontend's startup marks (see `startup.rs`). No-op unless tracing is enabled.

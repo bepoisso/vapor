@@ -44,6 +44,7 @@ const shelves: SmartShelf[] = [
     title: "Demanding indies",
     order: 0,
     pinned: false,
+    seeded: true,
     rule: {
       all: [
         { field: "tags", op: "includes", value: "Indie" },
@@ -56,6 +57,7 @@ const shelves: SmartShelf[] = [
     title: "Big stories",
     order: 1,
     pinned: false,
+    seeded: true,
     rule: { all: [{ field: "tags", op: "includes", value: "Story" }] },
   },
 ];
@@ -182,5 +184,38 @@ describe("LibraryPage", () => {
     expect(screen.queryByRole("group", { name: "Filters" })).not.toBeInTheDocument();
     expect(screen.queryByRole("group", { name: "Moods" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Demanding indies" })).not.toBeInTheDocument();
+  });
+
+  it("shows the user's empty shelves and the Steam collections", async () => {
+    useLibraryStore.setState({
+      status: "ready",
+      games,
+      shelves: [
+        {
+          id: "shelf-9",
+          title: "My backlog",
+          order: 0,
+          pinned: false,
+          seeded: false,
+          rule: { all: [{ field: "tags", op: "includes", value: "Backlog" }] },
+        },
+      ],
+      collections: [{ id: "favorite", name: "Favoris", appIds: [504230, 268910, 999] }],
+      error: null,
+    });
+    useFiltersStore.setState({
+      query: "",
+      selection: EMPTY_SELECTION,
+      sort: "name",
+      moodId: "friends",
+    });
+    render(
+      <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: ["/"] }))} />,
+    );
+
+    expect(await screen.findByRole("heading", { name: "My backlog" })).toBeInTheDocument();
+    expect(screen.getByText("No game matches this rule yet.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Favoris" })).toBeInTheDocument();
+    expect(screen.getByText("Steam collection")).toBeInTheDocument();
   });
 });

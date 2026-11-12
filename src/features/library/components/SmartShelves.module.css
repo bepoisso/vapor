@@ -27,3 +27,40 @@
 .create {
   align-self: flex-start;
 }
+
+.empty {
+  margin: 0;
+  padding: 18px 0 6px;
+  color: var(--text-muted);
+  font-size: var(--fs-13);
+}
+
+/* "⋯" next to a shelf title. */
+.menu {
+  position: relative;
+}
+
+.menuButton {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menuButton:hover,
+.menuButton[aria-expanded="true"] {
+  background: var(--surface-2);
+  color: var(--text-hover);
+}
+
+/* Open towards the right: the button sits next to the title. Two classes beat the shared
+   menu's single-class `right: 0` whatever the stylesheet order. */
+.menu .menuList {
+  left: 0;
+  right: auto;
+}

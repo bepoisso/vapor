@@ -134,4 +134,8 @@ pub struct SmartShelf {
     pub rule: Rule,
     pub order: u32,
     pub pinned: bool,
+    /// A default shelf the user hasn't edited: hidden when nothing matches. The user's own
+    /// shelves always show, so a new one never disappears before it can be edited.
+    #[serde(default)]
+    pub seeded: bool,
 }

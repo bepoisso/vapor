@@ -18,6 +18,7 @@ use std::sync::Arc;
 
 use enrichment::service::EnrichmentService;
 use library::service::{LibraryService, LibraryUpdated};
+use library::shelves::ShelfStore;
 use library::tags::Tagging;
 use sessions::{GameSessions, RunningGameChanged};
 use settings::SettingsStore;
@@ -36,17 +37,21 @@ fn specta_builder() -> Builder<tauri::Wry> {
         .disable_serde_phases()
         .commands(collect_commands![
             commands::app_info,
+            commands::delete_shelf,
             commands::get_library,
             commands::get_profile,
             commands::get_running_game,
             commands::get_settings,
             commands::install_game,
             commands::launch_game,
+            commands::list_collections,
             commands::list_shelves,
             commands::open_api_key_page,
             commands::remove_api_key,
+            commands::reorder_shelves,
             commands::report_startup,
             commands::save_api_key,
+            commands::save_shelf,
             commands::set_account,
             commands::set_game_tags,
             commands::set_steam_path,
@@ -109,6 +114,7 @@ pub fn run() {
         .manage(EnrichmentService::new(cache_dir))
         .manage(HttpClient(web::client()))
         .manage(Tagging::load(&config_dir))
+        .manage(ShelfStore::load(&config_dir))
         .manage(settings)
         .register_asynchronous_uri_scheme_protocol(images::SCHEME, |ctx, request, responder| {
             let app = ctx.app_handle().clone();

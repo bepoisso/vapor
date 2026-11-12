@@ -8,6 +8,7 @@ import * as __TAURI_EVENT from "@tauri-apps/api/event";
 /** Commands */
 export const commands = {
 	appInfo: () => __TAURI_INVOKE<AppInfo>("app_info"),
+	deleteShelf: (id: string) => __TAURI_INVOKE<SmartShelf[]>("delete_shelf", { id }),
 	/**
 	 *  Installed games. Served from Vapor's cache; a background scan emits `LibraryUpdated` if
 	 *  anything changed.
@@ -22,11 +23,15 @@ export const commands = {
 	installGame: (appId: number) => __TAURI_INVOKE<null>("install_game", { appId }),
 	/**  Asks Steam to launch a game (starting Steam silently in the tray if needed). */
 	launchGame: (appId: number) => __TAURI_INVOKE<null>("launch_game", { appId }),
+	/**  The account's Steam collections, read-only. */
+	listCollections: () => __TAURI_INVOKE<SteamCollection[]>("list_collections"),
 	listShelves: () => __TAURI_INVOKE<SmartShelf[]>("list_shelves"),
 	/**  Opens Steam's API key page in the default browser. */
 	openApiKeyPage: () => __TAURI_INVOKE<null>("open_api_key_page"),
 	/**  Deletes the key from the keychain and forgets the data fetched with it. */
 	removeApiKey: () => __TAURI_INVOKE<SettingsView>("remove_api_key"),
+	/**  Puts the shelves in the order of `ids`. */
+	reorderShelves: (ids: string[]) => __TAURI_INVOKE<SmartShelf[]>("reorder_shelves", { ids }),
 	/**  Receives the frontend's startup marks (see `startup.rs`). No-op unless tracing is enabled. */
 	reportStartup: (marks: FrontendMarks) => __TAURI_INVOKE<null>("report_startup", { marks }),
 	/**
@@ -34,6 +39,8 @@ export const commands = {
 	 *  keychain. A rejected key is not stored.
 	 */
 	saveApiKey: (key: string) => __TAURI_INVOKE<SettingsView>("save_api_key", { key }),
+	/**  Creates (empty `id`) or updates a smart shelf. Returns every shelf, in order. */
+	saveShelf: (shelf: SmartShelf) => __TAURI_INVOKE<SmartShelf[]>("save_shelf", { shelf }),
 	/**  `null` returns to the most recent login. */
 	setAccount: (steamId: string | null) => __TAURI_INVOKE<SettingsView>("set_account", { steamId }),
 	/**  Saves the user's vibe tags for a game (kept as edits on top of the mapped tags). */
@@ -181,6 +188,11 @@ export type SmartShelf = {
 	rule: Rule,
 	order: number,
 	pinned: boolean,
+	/**
+	 *  A default shelf the user hasn't edited: hidden when nothing matches. The user's own
+	 *  shelves always show, so a new one never disappears before it can be edited.
+	 */
+	seeded?: boolean,
 };
 
 /**
@@ -190,6 +202,12 @@ export type SmartShelf = {
 export type SteamAccount = {
 	steamId: string,
 	personaName: string,
+};
+
+export type SteamCollection = {
+	id: string,
+	name: string,
+	appIds: number[],
 };
 
 /* Tauri Specta runtime */
