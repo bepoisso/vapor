@@ -87,6 +87,22 @@ impl LibraryService {
         matches!(self.source, Source::Steam)
     }
 
+    /// Whether games come from the Steam install (Store details and tags apply).
+    pub fn is_steam(&self) -> bool {
+        matches!(self.source, Source::Steam)
+    }
+
+    /// Installed games of the cached snapshot.
+    pub fn installed_app_ids(&self) -> Vec<AppId> {
+        match self.source {
+            Source::Steam => self
+                .current()
+                .map(|snapshot| snapshot.apps.iter().map(|app| app.app_id).collect())
+                .unwrap_or_default(),
+            Source::Sample(_) => Vec::new(),
+        }
+    }
+
     /// The account whose library is shown (SteamID64).
     pub fn active_account(&self) -> Option<u64> {
         match self.source {

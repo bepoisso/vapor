@@ -1,0 +1,17 @@
+{
+  "_comment": "Default mapping from Steam Store genres and category IDs to Vapor's vibe tags. Copy this file to <config dir>/io.github.bepoisso.vapor/vibe-mapping.json to override it. 'Hard' has no Store equivalent: tag games yourself.",
+  "genres": {
+    "Indie": ["Indie"],
+    "Action": ["Action"],
+    "Casual": ["Chill", "Short sessions"],
+    "Simulation": ["Chill"],
+    "RPG": ["Story"],
+    "Adventure": ["Story", "Exploration"],
+    "Racing": ["Short sessions"],
+    "Sports": ["Competitive"]
+  },
+  "categories": {
+    "36": ["Competitive"],
+    "49": ["Competitive"]
+  }
+}

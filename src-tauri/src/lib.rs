@@ -18,6 +18,7 @@ use std::sync::Arc;
 
 use enrichment::service::EnrichmentService;
 use library::service::{LibraryService, LibraryUpdated};
+use library::tags::Tagging;
 use sessions::{GameSessions, RunningGameChanged};
 use settings::SettingsStore;
 use tauri::Manager;
@@ -47,7 +48,9 @@ fn specta_builder() -> Builder<tauri::Wry> {
             commands::report_startup,
             commands::save_api_key,
             commands::set_account,
+            commands::set_game_tags,
             commands::set_steam_path,
+            commands::set_store_enrichment,
         ])
         .events(collect_events![LibraryUpdated, RunningGameChanged])
 }
@@ -105,6 +108,7 @@ pub fn run() {
         .manage(GameSessions::new(settings.clone()))
         .manage(EnrichmentService::new(cache_dir))
         .manage(HttpClient(web::client()))
+        .manage(Tagging::load(&config_dir))
         .manage(settings)
         .register_asynchronous_uri_scheme_protocol(images::SCHEME, |ctx, request, responder| {
             let app = ctx.app_handle().clone();

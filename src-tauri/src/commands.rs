@@ -14,6 +14,7 @@ use tauri_specta::Event;
 use crate::enrichment::service::EnrichmentService;
 use crate::error::{CommandError, CommandResult, Error};
 use crate::library::service::{LibraryService, LibraryUpdated};
+use crate::library::tags::Tagging;
 use crate::library::{self, snapshot};
 use crate::model::{AppId, Game, Profile, SmartShelf};
 use crate::sessions::GameSessions;
@@ -60,7 +61,31 @@ async fn with_library<T: Send + 'static>(
 #[specta::specta]
 pub async fn get_library(app: AppHandle) -> CommandResult<Vec<Game>> {
     let enrichment = app.state::<EnrichmentService>().current();
-    with_library(app, move |library| library.games(&enrichment)).await
+    let handle = app.clone();
+    with_library(app, move |library| {
+        let mut games = library.games(&enrichment)?;
+        if library.is_steam() {
+            handle
+                .state::<Tagging>()
+                .apply(&mut games, &enrichment.store);
+        }
+        Ok(games)
+    })
+    .await
+}
+
+/// Saves the user's vibe tags for a game (kept as edits on top of the mapped tags).
+#[tauri::command]
+#[specta::specta]
+pub async fn set_game_tags(app: AppHandle, app_id: AppId, tags: Vec<String>) -> CommandResult<()> {
+    let enrichment = app.state::<EnrichmentService>().current();
+    let details = enrichment
+        .store
+        .get(&app_id)
+        .and_then(|entry| entry.details.as_ref());
+    app.state::<Tagging>().set_tags(app_id, tags, details)?;
+    let _ = LibraryUpdated.emit(&app);
+    Ok(())
 }
 
 /// The Steam account whose library is shown.
@@ -150,6 +175,8 @@ pub struct SettingsView {
     pub owned_synced_at: Option<String>,
     pub sync_error: Option<String>,
     pub store_enrichment: bool,
+    /// Games with Store details (genres, modes) when the Store opt-in is on.
+    pub store_games: Option<u32>,
 }
 
 fn settings_view(app: &AppHandle) -> SettingsView {
@@ -186,6 +213,16 @@ fn settings_view(app: &AppHandle) -> SettingsView {
             .map(snapshot::iso8601_utc),
         sync_error: enrichment.last_error.clone(),
         store_enrichment: current.store_enrichment,
+        store_games: current
+            .store_enrichment
+            .then(|| {
+                let known = enrichment
+                    .store
+                    .values()
+                    .filter(|entry| entry.details.is_some());
+                u32::try_from(known.count()).ok()
+            })
+            .flatten(),
     }
 }
 
@@ -261,6 +298,22 @@ pub async fn set_account(app: AppHandle, steam_id: Option<String>) -> CommandRes
     app.state::<Arc<SettingsStore>>()
         .update(|settings| settings.steam_id64 = steam_id64)?;
     LibraryService::reconfigure(&app);
+    Ok(settings_view(&app))
+}
+
+/// Opt-in for the Store's unofficial `appdetails` endpoint (genres, modes). Turning it off
+/// also forgets the details fetched so far.
+#[tauri::command]
+#[specta::specta]
+pub async fn set_store_enrichment(app: AppHandle, enabled: bool) -> CommandResult<SettingsView> {
+    app.state::<Arc<SettingsStore>>()
+        .update(|settings| settings.store_enrichment = enabled)?;
+    if enabled {
+        EnrichmentService::spawn_sync(app.clone(), false);
+    } else {
+        app.state::<EnrichmentService>().clear_store();
+        let _ = LibraryUpdated.emit(&app);
+    }
     Ok(settings_view(&app))
 }
 

@@ -28,6 +28,7 @@
   /* Translucent fills for chrome sitting over images (top bar, ghost buttons) */
   --overlay: rgb(0 0 0 / 0.4);
   --overlay-strong: rgb(0 0 0 / 0.45);
+  --overlay-scrim: rgb(0 0 0 / 0.7);
   --overlay-border: rgb(255 255 255 / 0.1);
   --overlay-border-strong: rgb(255 255 255 / 0.2);
   --ghost: rgb(255 255 255 / 0.12);

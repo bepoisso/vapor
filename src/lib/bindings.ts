@@ -36,8 +36,15 @@ export const commands = {
 	saveApiKey: (key: string) => __TAURI_INVOKE<SettingsView>("save_api_key", { key }),
 	/**  `null` returns to the most recent login. */
 	setAccount: (steamId: string | null) => __TAURI_INVOKE<SettingsView>("set_account", { steamId }),
+	/**  Saves the user's vibe tags for a game (kept as edits on top of the mapped tags). */
+	setGameTags: (appId: number, tags: string[]) => __TAURI_INVOKE<null>("set_game_tags", { appId, tags }),
 	/**  `null` returns to the detected Steam folder. */
 	setSteamPath: (path: string | null) => __TAURI_INVOKE<SettingsView>("set_steam_path", { path }),
+	/**
+	 *  Opt-in for the Store's unofficial `appdetails` endpoint (genres, modes). Turning it off
+	 *  also forgets the details fetched so far.
+	 */
+	setStoreEnrichment: (enabled: boolean) => __TAURI_INVOKE<SettingsView>("set_store_enrichment", { enabled }),
 };
 
 /** Events */
@@ -164,6 +171,8 @@ export type SettingsView = {
 	ownedSyncedAt: string | null,
 	syncError: string | null,
 	storeEnrichment: boolean,
+	/**  Games with Store details (genres, modes) when the Store opt-in is on. */
+	storeGames: number | null,
 };
 
 export type SmartShelf = {

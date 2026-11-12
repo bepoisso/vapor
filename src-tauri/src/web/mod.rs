@@ -3,6 +3,7 @@
 
 pub mod cdn;
 pub mod steam_api;
+pub mod store_api;
 
 use std::time::Duration;
 

@@ -1,3 +1,8 @@
+.card {
+  position: relative;
+  min-width: 0;
+}
+
 .cover {
   display: flex;
   flex-direction: column;
@@ -69,4 +74,43 @@
 .cover[data-installed="false"]:hover .art,
 .cover[data-installed="false"]:focus-visible .art {
   opacity: 1;
+}
+
+/* "⋯" menu: over the top-right corner of the cover, shown on hover or keyboard focus. */
+.menu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  opacity: 0;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+.card:hover .menu,
+.menu:focus-within,
+.menu[data-open="true"] {
+  opacity: 1;
+}
+
+/* Follow the cover's hover lift. */
+.card:hover .menu {
+  transform: translateY(-6px);
+}
+
+.menuButton {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--overlay-strong);
+  color: var(--text-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menuButton:hover {
+  background: var(--overlay-scrim);
 }

@@ -67,3 +67,12 @@ Short log of decisions taken with the owner. Newest last. Each entry: what, why,
 - **Achievements** (`ISteamUserStats/GetPlayerAchievements`): fetched for played games only, 150 ms apart, and fetched again only after the game was played again. Games without achievements show none.
 - **Art for not-installed games**: Steam's own `librarycache` first (Steam caches art for library games it has shown), then the public Steam CDN, downloaded once and cached in `<cache dir>/cdn/`. CDN misses are remembered for a week.
 - **Settings** live in `<config dir>/io.github.bepoisso.vapor/settings.json` (Steam folder override, account, Store opt-in). The Settings page opens from the profile menu (persona name, top right).
+
+## 2026-11-12 — Phase 4b: genres, modes and vibe tags
+- **Store `appdetails` is opt-in, off by default** (Settings → "Genres and modes from the Steam Store"). The endpoint is unofficial and undocumented; it is flagged in the UI and only called once the user turns it on. Requests go one at a time, 1.5 s apart (the endpoint allows ~200 per 5 min), and stop on HTTP 429. Results are cached for 30 days. Turning the option off forgets the fetched details.
+- From the Store details:
+  - **genre** = the first genre that isn't a business-model genre (Indie, Free To Play, Early Access, Massively Multiplayer);
+  - **modes** come from category IDs: Solo 2; Co-op 9, 38, 39, 48; PvP 36, 37, 47, 49;
+  - apps whose Store type is not `game`, `demo` or `mod` are dropped from the library. This complements the hand-kept non-game list.
+- **Vibe tags** = the bundled mapping `src-tauri/src/library/vibe-mapping.json` (Store genres and categories → vibes), which a copy at `<config dir>/io.github.bepoisso.vapor/vibe-mapping.json` overrides. "Hard" has no Store equivalent and comes only from the user's own tags.
+- **User tags**: edited from a cover's "⋯" menu (or right-click) in a modal `<dialog>`. They are stored as additions and removals on top of the mapped tags (`<config dir>/…/user-tags.json`), so remapping a game keeps the user's choices.

@@ -13,8 +13,8 @@ export const EMPTY_SELECTION: FacetSelection = { genre: [], modes: [], tags: [] 
 
 const MODE_ORDER: readonly Mode[] = ["Solo", "Coop", "PvP"];
 
-/** Vibe tags shown first, in this order (matches the mockup); other tags follow A–Z. */
-const VIBE_ORDER = [
+/** Vapor's vibe tags, in display order (matches the mockup); other tags follow A–Z. */
+export const VIBE_TAGS = [
   "Indie",
   "Hard",
   "Story",
@@ -57,8 +57,8 @@ export function buildFacets(games: readonly Game[]): Facet[] {
 
   const tagSet = new Set(games.flatMap((game) => game.tags));
   const tags = [
-    ...VIBE_ORDER.filter((tag) => tagSet.has(tag)),
-    ...[...tagSet].filter((tag) => !VIBE_ORDER.includes(tag)).sort((a, b) => a.localeCompare(b)),
+    ...VIBE_TAGS.filter((tag) => tagSet.has(tag)),
+    ...[...tagSet].filter((tag) => !VIBE_TAGS.includes(tag)).sort((a, b) => a.localeCompare(b)),
   ];
 
   return [

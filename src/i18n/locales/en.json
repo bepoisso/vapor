@@ -50,6 +50,12 @@
       "automatic": "Automatic (last signed in)",
       "automaticWith": "Automatic: {{name}} (last signed in)"
     },
+    "store": {
+      "title": "Genres and modes from the Steam Store",
+      "description": "Fills genres, modes (solo, co-op, PvP) and vibe tags so filters, moods and smart shelves work. Valve does not document the Store endpoint this uses (appdetails); Vapor asks for one game every 1.5 s and keeps the answers for a month. Off by default.",
+      "status_one": "Genres known for {{count}} game.",
+      "status_other": "Genres known for {{count}} games."
+    },
     "steamFolder": {
       "title": "Steam folder",
       "detected": "Detected: {{path}}",
@@ -128,8 +134,19 @@
   "card": {
     "play": "Play {{name}}",
     "install": "Install {{name}}",
+    "more": "More actions for {{name}}",
+    "editTags": "Edit tags…",
     "launching": "Launching {{name}}…",
     "playing": "{{name}} is running"
+  },
+  "tags": {
+    "title": "Tags for {{name}}",
+    "description": "Tags drive moods, smart shelves and the Vibe filter. Changes are kept on top of the tags Vapor derives from the Store.",
+    "label": "Tags",
+    "add": "Add",
+    "addPlaceholder": "Add your own tag",
+    "cancel": "Cancel",
+    "save": "Save"
   },
   "rules": {
     "and": "+",

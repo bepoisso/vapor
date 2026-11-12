@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { AccountSection } from "./AccountSection";
 import { ApiKeySection } from "./ApiKeySection";
 import { SteamFolderSection } from "./SteamFolderSection";
+import { StoreSection } from "./StoreSection";
 import { useSettings } from "./useSettings";
 import styles from "./SettingsPage.module.css";
 
@@ -16,6 +17,7 @@ export function SettingsPage() {
       {view && (
         <>
           <ApiKeySection view={view} settings={settings} />
+          <StoreSection view={view} settings={settings} />
           <AccountSection view={view} settings={settings} />
           <SteamFolderSection view={view} settings={settings} />
         </>
