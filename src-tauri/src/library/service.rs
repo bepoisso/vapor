@@ -2,6 +2,8 @@
 //! critical path), a background scan refreshes it, and a file watcher keeps it current while
 //! Vapor runs. The UI is told through the `LibraryUpdated` event.
 
+use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, PoisonError, RwLock};
 use std::time::Duration;
@@ -15,10 +17,13 @@ use tauri_specta::Event;
 
 use super::sample::{self, SampleLibrary};
 use super::snapshot::{self, SNAPSHOT_VERSION, Snapshot};
+use crate::enrichment::Enrichment;
+use crate::enrichment::service::EnrichmentService;
 use crate::error::Error;
-use crate::images::ImageRequest;
-use crate::model::{Game, Profile};
-use crate::steam::SteamInstall;
+use crate::images::{ImageKind, ImageRequest};
+use crate::model::{AppId, Game, Profile};
+use crate::settings::SettingsStore;
+use crate::steam::artwork::{self, ArtPaths};
 
 /// `VAPOR_LIBRARY=sample` serves the mockup's sample library instead of the Steam install.
 const SOURCE_ENV: &str = "VAPOR_LIBRARY";
@@ -30,14 +35,17 @@ const WATCH_DEBOUNCE: Duration = Duration::from_millis(1500);
 pub struct LibraryUpdated;
 
 enum Source {
-    /// `None` when no Steam install was found.
-    Steam(Option<SteamInstall>),
+    /// The Steam install and account picked by the settings (re-read at each scan).
+    Steam,
     Sample(SampleLibrary),
 }
 
 pub struct LibraryService {
     source: Source,
+    settings: Arc<SettingsStore>,
     cache_dir: PathBuf,
+    /// Art of games outside the snapshot (owned, not installed), found in Steam's library cache.
+    extra_art: Mutex<HashMap<AppId, ArtPaths>>,
     snapshot: RwLock<Option<Arc<Snapshot>>>,
     /// Serializes scans (startup refresh, watcher, first-run load).
     scan_lock: Mutex<()>,
@@ -46,21 +54,20 @@ pub struct LibraryService {
 
 impl LibraryService {
     /// Picks the source and loads the cached snapshot, if any. Cheap: no Steam file is parsed.
-    pub fn new(cache_dir: PathBuf) -> Self {
+    pub fn new(cache_dir: PathBuf, settings: Arc<SettingsStore>) -> Self {
         let source = match std::env::var(SOURCE_ENV).as_deref() {
-            Ok("sample") => match sample::load() {
-                Ok(library) => Source::Sample(library),
-                Err(_) => Source::Steam(SteamInstall::locate().ok()),
-            },
-            _ => Source::Steam(SteamInstall::locate().ok()),
+            Ok("sample") => sample::load().map_or(Source::Steam, Source::Sample),
+            _ => Source::Steam,
         };
         let cached = match source {
-            Source::Steam(Some(_)) => load_cache(&cache_dir.join(CACHE_FILE)).map(Arc::new),
-            _ => None,
+            Source::Steam => load_cache(&cache_dir.join(CACHE_FILE)).map(Arc::new),
+            Source::Sample(_) => None,
         };
         Self {
             source,
+            settings,
             cache_dir,
+            extra_art: Mutex::new(HashMap::new()),
             snapshot: RwLock::new(cached),
             scan_lock: Mutex::new(()),
             watcher: Mutex::new(None),
@@ -69,6 +76,23 @@ impl LibraryService {
 
     pub fn thumbnail_dir(&self) -> PathBuf {
         self.cache_dir.join("thumbnails")
+    }
+
+    pub fn cdn_dir(&self) -> PathBuf {
+        self.cache_dir.join("cdn")
+    }
+
+    /// Whether art missing locally may be downloaded from the Steam CDN (not for the sample).
+    pub fn uses_cdn(&self) -> bool {
+        matches!(self.source, Source::Steam)
+    }
+
+    /// The account whose library is shown (SteamID64).
+    pub fn active_account(&self) -> Option<u64> {
+        match self.source {
+            Source::Steam => self.current()?.account(),
+            Source::Sample(_) => None,
+        }
     }
 
     fn current(&self) -> Option<Arc<Snapshot>> {
@@ -87,17 +111,17 @@ impl LibraryService {
         self.current().ok_or(Error::SteamNotFound)
     }
 
-    pub fn games(&self) -> Result<Vec<Game>, Error> {
+    pub fn games(&self, enrichment: &Enrichment) -> Result<Vec<Game>, Error> {
         match &self.source {
             Source::Sample(library) => Ok(library.games.clone()),
-            Source::Steam(_) => Ok(self.snapshot_or_scan()?.games()),
+            Source::Steam => Ok(self.snapshot_or_scan()?.games(enrichment)),
         }
     }
 
     pub fn profile(&self) -> Result<Profile, Error> {
         match &self.source {
             Source::Sample(library) => Ok(library.profile.clone()),
-            Source::Steam(_) => Ok(self.snapshot_or_scan()?.profile()),
+            Source::Steam => Ok(self.snapshot_or_scan()?.profile()),
         }
     }
 
@@ -110,26 +134,49 @@ impl LibraryService {
                 .and_then(|art| kind.source(art))
                 .map(Path::to_owned),
             (Source::Sample(_), ImageRequest::Avatar) => None,
-            (Source::Steam(_), ImageRequest::Art(app_id, kind)) => {
-                self.current()?.art_path(*app_id, *kind).map(Path::to_owned)
+            (Source::Steam, ImageRequest::Art(app_id, kind)) => {
+                let snapshot = self.current()?;
+                if snapshot.apps.iter().any(|app| app.app_id == *app_id) {
+                    return snapshot.art_path(*app_id, *kind).map(Path::to_owned);
+                }
+                self.extra_art_path(*app_id, *kind)
             }
-            (Source::Steam(_), ImageRequest::Avatar) => self.current()?.avatar.clone(),
+            (Source::Steam, ImageRequest::Avatar) => self.current()?.avatar.clone(),
         }
+    }
+
+    /// Steam caches art for games it showed in its library, installed or not.
+    fn extra_art_path(&self, app_id: AppId, kind: ImageKind) -> Option<PathBuf> {
+        let mut known = self
+            .extra_art
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        let art = match known.entry(app_id) {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => {
+                let steam = self.settings.steam_install()?;
+                entry.insert(artwork::resolve(
+                    &steam.library_cache_dir().join(app_id.to_string()),
+                ))
+            }
+        };
+        kind.source(art).map(Path::to_owned)
     }
 
     /// Rescans Steam. Returns whether anything the UI shows changed.
     pub fn refresh(&self) -> Result<bool, Error> {
-        let Source::Steam(steam) = &self.source else {
+        let Source::Steam = &self.source else {
             return Ok(false);
         };
-        let steam = steam.as_ref().ok_or(Error::SteamNotFound)?;
+        let steam = self.settings.steam_install().ok_or(Error::SteamNotFound)?;
+        let preferred = self.settings.get().steam_id64;
         let _scanning = self
             .scan_lock
             .lock()
             .unwrap_or_else(PoisonError::into_inner);
 
         let previous = self.current();
-        let fresh = snapshot::scan(steam, previous.as_deref())?;
+        let fresh = snapshot::scan(&steam, previous.as_deref(), preferred)?;
         let changed = previous.as_deref() != Some(&fresh);
         if changed {
             // A failed cache write only costs the next startup a scan.
@@ -142,34 +189,49 @@ impl LibraryService {
         Ok(changed)
     }
 
-    /// Background work after startup: refresh the cached snapshot, then watch Steam's files.
-    pub fn start_background(app: AppHandle, service: &Self) {
-        if !matches!(service.source, Source::Steam(Some(_))) {
-            return;
-        }
-        let refresh_and_notify = {
-            let app = app.clone();
-            move || {
-                if let Some(service) = tauri::Manager::try_state::<LibraryService>(&app)
-                    && matches!(service.refresh(), Ok(true))
-                {
-                    let _ = LibraryUpdated.emit(&app);
-                }
-            }
-        };
-        let notify_after_scan = refresh_and_notify.clone();
+    /// Background work after startup: refresh the cached snapshot, sync the Web API data, then
+    /// watch Steam's files.
+    pub fn start_background(app: AppHandle) {
         std::thread::spawn(move || {
-            notify_after_scan();
+            let Some(service) = tauri::Manager::try_state::<LibraryService>(&app) else {
+                return;
+            };
+            if !matches!(service.source, Source::Steam) {
+                return;
+            }
+            refresh_and_notify(&app);
+            EnrichmentService::spawn_sync(app.clone(), false);
+            service.watch(app.clone());
+        });
+    }
+
+    /// After a settings change: rescan, re-watch (folders may differ) and notify.
+    pub fn reconfigure(app: &AppHandle) {
+        let app = app.clone();
+        std::thread::spawn(move || {
             if let Some(service) = tauri::Manager::try_state::<LibraryService>(&app) {
-                service.watch(refresh_and_notify);
+                service
+                    .extra_art
+                    .lock()
+                    .unwrap_or_else(PoisonError::into_inner)
+                    .clear();
+            }
+            refresh_and_notify(&app);
+            if let Some(service) = tauri::Manager::try_state::<LibraryService>(&app) {
+                service.watch(app.clone());
             }
         });
     }
 
     /// Watches manifests, the account list and the account's activity file.
-    fn watch(&self, on_change: impl Fn() + Clone + Send + 'static) {
-        let (Source::Steam(Some(steam)), Some(snapshot)) = (&self.source, self.current()) else {
+    fn watch(&self, app: AppHandle) {
+        let (Some(steam), Some(snapshot)) = (self.settings.steam_install(), self.current()) else {
             return;
+        };
+        let on_change = move || {
+            refresh_and_notify(&app);
+            // A game session may have ended: its achievements may have changed.
+            EnrichmentService::spawn_sync(app.clone(), false);
         };
         let handler = move |result: DebounceEventResult| {
             let relevant =
@@ -195,6 +257,14 @@ impl LibraryService {
             let _ = debouncer.watcher().watch(&dir, RecursiveMode::NonRecursive);
         }
         *self.watcher.lock().unwrap_or_else(PoisonError::into_inner) = Some(debouncer);
+    }
+}
+
+fn refresh_and_notify(app: &AppHandle) {
+    if let Some(service) = tauri::Manager::try_state::<LibraryService>(app)
+        && matches!(service.refresh(), Ok(true))
+    {
+        let _ = LibraryUpdated.emit(app);
     }
 }
 

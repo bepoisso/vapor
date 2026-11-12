@@ -125,7 +125,13 @@
 }
 
 /* Profile */
+.profileWrap {
+  position: relative;
+}
+
 .profile {
+  border: 0;
+  cursor: pointer;
   height: 40px;
   padding: 0 6px;
   color: var(--text);

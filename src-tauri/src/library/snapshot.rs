@@ -8,14 +8,16 @@ use std::time::UNIX_EPOCH;
 
 use serde::{Deserialize, Serialize};
 
+use crate::enrichment::Enrichment;
 use crate::error::Error;
 use crate::images::{self, ImageKind};
-use crate::model::{AppId, Game, Profile};
+use crate::model::{Achievements, AppId, Game, Profile};
 use crate::steam::activity::{self, AppActivity};
 use crate::steam::artwork::{self, ArtPaths};
 use crate::steam::manifests::{self, InstalledApp};
 use crate::steam::users::{self, SteamUser};
 use crate::steam::{SteamInstall, libraries, non_games};
+use crate::web::steam_api::OwnedGame;
 
 /// Bump when the shape changes; older cache files are then ignored and rebuilt.
 pub const SNAPSHOT_VERSION: u32 = 1;
@@ -59,8 +61,13 @@ impl FileStamp {
     }
 }
 
-/// Reads the Steam install. `previous` lets unchanged logos skip their (image decoding) check.
-pub fn scan(steam: &SteamInstall, previous: Option<&Snapshot>) -> Result<Snapshot, Error> {
+/// Reads the Steam install for `preferred` (else the most recent) account. `previous` lets
+/// unchanged logos skip their (image decoding) check.
+pub fn scan(
+    steam: &SteamInstall,
+    previous: Option<&Snapshot>,
+    preferred: Option<u64>,
+) -> Result<Snapshot, Error> {
     let folders = libraries::read(&steam.library_folders_file(), steam.root())
         .unwrap_or_else(|_| vec![steam.root().to_owned()]);
 
@@ -73,7 +80,8 @@ pub fn scan(steam: &SteamInstall, previous: Option<&Snapshot>) -> Result<Snapsho
     apps.dedup_by_key(|app| app.app_id);
 
     // A missing or unreadable account only loses playtime and the profile, not the library.
-    let user = users::read_active(&steam.login_users_file()).ok().flatten();
+    let accounts = users::read_all(&steam.login_users_file()).unwrap_or_default();
+    let user = users::select(&accounts, preferred);
     let mut all_activity = user
         .as_ref()
         .and_then(|user| {
@@ -185,33 +193,94 @@ fn check_logos(
 }
 
 impl Snapshot {
-    pub fn games(&self) -> Vec<Game> {
+    /// Installed games, plus owned but not installed ones when `enrichment` has them (Web API).
+    pub fn games(&self, enrichment: &Enrichment) -> Vec<Game> {
         let no_activity = AppActivity::default();
-        self.apps
-            .iter()
-            .map(|app| {
-                let activity = self.activity.get(&app.app_id).unwrap_or(&no_activity);
-                let art = self.art.get(&app.app_id);
-                let images = art.map_or_else(Default::default, |art| {
-                    images::game_images(app.app_id, &art.paths, !art.logo_dark)
-                });
-                Game {
-                    app_id: app.app_id,
-                    name: app.name.clone(),
-                    // Genres, modes and tags come from the Store API (Phase 4).
-                    genre: None,
-                    modes: Vec::new(),
-                    tags: Vec::new(),
-                    installed: Some(app.fully_installed()),
-                    playtime_minutes: activity.playtime_minutes,
-                    last_played: activity.last_played.map(iso8601_utc),
-                    achievements: None,
-                    cloud: activity.cloud(),
-                    update_pending: Some(app.update_required()),
-                    images,
-                }
+        // Enrichment for another account (just switched) must not leak into this one.
+        let same_account = enrichment.account.is_some()
+            && enrichment.account == self.user.as_ref().map(|user| user.steam_id64);
+        let owned: BTreeMap<AppId, &OwnedGame> = if same_account {
+            enrichment
+                .owned
+                .iter()
+                .map(|game| (game.app_id, game))
+                .collect()
+        } else {
+            BTreeMap::new()
+        };
+        let achievements = |app_id: AppId| {
+            enrichment
+                .achievements
+                .get(&app_id)
+                .filter(|_| same_account)
+                .filter(|known| known.total > 0)
+                .map(|known| Achievements {
+                    unlocked: known.unlocked,
+                    total: known.total,
+                })
+        };
+
+        let installed = self.apps.iter().map(|app| {
+            let activity = self.activity.get(&app.app_id).unwrap_or(&no_activity);
+            let remote = owned.get(&app.app_id);
+            let art = self.art.get(&app.app_id);
+            let images = art.map_or_else(Default::default, |art| {
+                images::game_images(app.app_id, &art.paths, !art.logo_dark)
+            });
+            Game {
+                app_id: app.app_id,
+                name: app.name.clone(),
+                // Genres, modes and tags come from the Store API.
+                genre: None,
+                modes: Vec::new(),
+                tags: Vec::new(),
+                installed: Some(app.fully_installed()),
+                // The Web API counts every machine; the local file only this one's sync.
+                playtime_minutes: activity.playtime_minutes.max(
+                    remote
+                        .map(|game| game.playtime_minutes)
+                        .filter(|&minutes| minutes > 0),
+                ),
+                last_played: activity
+                    .last_played
+                    .max(remote.and_then(|game| game.last_played))
+                    .map(iso8601_utc),
+                achievements: achievements(app.app_id),
+                cloud: activity.cloud(),
+                update_pending: Some(app.update_required()),
+                images,
+            }
+        });
+
+        let installed_ids: std::collections::BTreeSet<AppId> =
+            self.apps.iter().map(|app| app.app_id).collect();
+        let not_installed = owned
+            .values()
+            .filter(|game| !installed_ids.contains(&game.app_id))
+            .filter(|game| {
+                !game.name.is_empty() && !non_games::is_non_game(game.app_id, &game.name)
             })
-            .collect()
+            .map(|game| Game {
+                app_id: game.app_id,
+                name: game.name.clone(),
+                genre: None,
+                modes: Vec::new(),
+                tags: Vec::new(),
+                installed: Some(false),
+                playtime_minutes: Some(game.playtime_minutes).filter(|&minutes| minutes > 0),
+                last_played: game.last_played.map(iso8601_utc),
+                achievements: achievements(game.app_id),
+                cloud: None,
+                update_pending: None,
+                images: images::remote_game_images(game.app_id),
+            });
+
+        installed.chain(not_installed).collect()
+    }
+
+    /// The account whose library this is.
+    pub fn account(&self) -> Option<u64> {
+        self.user.as_ref().map(|user| user.steam_id64)
     }
 
     pub fn profile(&self) -> Profile {
@@ -281,14 +350,14 @@ mod real_install {
     fn real_install_summary() {
         let steam = SteamInstall::locate().unwrap();
         let start = std::time::Instant::now();
-        let snapshot = scan(&steam, None).unwrap();
+        let snapshot = scan(&steam, None, None).unwrap();
         let cold = start.elapsed();
         let start = std::time::Instant::now();
-        let again = scan(&steam, Some(&snapshot)).unwrap();
+        let again = scan(&steam, Some(&snapshot), None).unwrap();
         let warm = start.elapsed();
         assert_eq!(snapshot, again);
 
-        let games = snapshot.games();
+        let games = snapshot.games(&Enrichment::default());
         let count = |f: &dyn Fn(&Game) -> bool| games.iter().filter(|g| f(g)).count();
         println!("steam root: {}", steam.root().display());
         println!("folders: {:?}", snapshot.folders);

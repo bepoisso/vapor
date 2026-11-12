@@ -60,3 +60,13 @@
 .dense .title {
   font-size: var(--fs-12);
 }
+
+/* Owned but not installed: present, but quieter. */
+.cover[data-installed="false"] .art {
+  opacity: 0.55;
+}
+
+.cover[data-installed="false"]:hover .art,
+.cover[data-installed="false"]:focus-visible .art {
+  opacity: 1;
+}

@@ -13,7 +13,11 @@
     "shortcut": "Ctrl K"
   },
   "profile": {
-    "label": "Profile"
+    "label": "Profile",
+    "menu": {
+      "profile": "Profile",
+      "settings": "Settings"
+    }
   },
   "placeholder": {
     "store": "Store",
@@ -23,6 +27,38 @@
     "history": "History",
     "shelf": "Smart shelf",
     "comingSoon": "Coming soon."
+  },
+  "settings": {
+    "title": "Settings",
+    "apiKey": {
+      "title": "Steam Web API key",
+      "description": "With your own key, Vapor lists every game you own (not only installed ones) and your achievements. The key is kept in Windows Credential Manager and only ever sent to Steam.",
+      "label": "Steam Web API key",
+      "placeholder": "32-character key",
+      "save": "Save key",
+      "checking": "Checking…",
+      "remove": "Remove key",
+      "getKey": "Get a key",
+      "statusNone": "No key: Vapor shows your installed games only.",
+      "statusSaved": "Key saved.",
+      "statusSynced_one": "Key saved · {{count}} game owned · synced {{when}}",
+      "statusSynced_other": "Key saved · {{count}} games owned · synced {{when}}"
+    },
+    "account": {
+      "title": "Steam account",
+      "description": "Accounts that signed in to Steam on this computer.",
+      "automatic": "Automatic (last signed in)",
+      "automaticWith": "Automatic: {{name}} (last signed in)"
+    },
+    "steamFolder": {
+      "title": "Steam folder",
+      "detected": "Detected: {{path}}",
+      "notDetected": "Steam wasn't found automatically. Enter the folder it is installed in.",
+      "label": "Steam folder",
+      "placeholder": "Steam folder",
+      "save": "Use this folder",
+      "reset": "Use the detected folder"
+    }
   },
   "status": {
     "error": "Couldn't load your library.",
@@ -91,6 +127,7 @@
   },
   "card": {
     "play": "Play {{name}}",
+    "install": "Install {{name}}",
     "launching": "Launching {{name}}…",
     "playing": "{{name}} is running"
   },

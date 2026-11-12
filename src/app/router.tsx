@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { LibraryPage } from "@/features/library/LibraryPage";
 import { PlaceholderPage } from "@/features/placeholder/PlaceholderPage";
+import { SettingsPage } from "@/features/settings/SettingsPage";
 import { AppShell } from "./AppShell";
 
 const rootRoute = createRootRoute({ component: AppShell });
@@ -55,7 +56,14 @@ const shelfRoute = createRoute({
   component: () => <PlaceholderPage titleKey="placeholder.shelf" />,
 });
 
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/settings",
+  component: SettingsPage,
+});
+
 const routeTree = rootRoute.addChildren([
+  settingsRoute,
   libraryRoute,
   storeRoute,
   communityRoute,

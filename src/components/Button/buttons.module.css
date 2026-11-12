@@ -14,6 +14,12 @@
     color var(--dur-fast) var(--ease-out);
 }
 
+/* Variants that keep their look while busy set --disabled-opacity: 1 (Play button). */
+.base:disabled {
+  cursor: default;
+  opacity: var(--disabled-opacity, 0.45);
+}
+
 /* Large: hero actions */
 .primary,
 .ghost {

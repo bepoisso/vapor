@@ -1,0 +1,43 @@
+/* Dropdown menu (sort, profile). Position the menu inside a `position: relative` wrapper. */
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  min-width: 180px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-lift);
+}
+
+.item {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-2);
+  font-size: var(--fs-13);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+}
+
+.item:hover,
+.item:focus-visible {
+  background: var(--surface-3);
+  color: var(--text-hover);
+}
+
+.item[aria-checked="true"] {
+  color: var(--text);
+  font-weight: 600;
+}

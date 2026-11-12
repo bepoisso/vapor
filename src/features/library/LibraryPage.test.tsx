@@ -176,7 +176,7 @@ describe("LibraryPage", () => {
 
     expect(await screen.findByText("Continue · Last played Jan 6")).toBeInTheDocument();
     expect(screen.getByText("46.8 h · Cloud synced")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Flitcher/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Flitcher/ })).toBeInTheDocument();
     expect(libraryCount()).toHaveTextContent("2 games");
     // Nothing to filter or suggest yet: facets, moods and shelves stay hidden.
     expect(screen.queryByRole("group", { name: "Filters" })).not.toBeInTheDocument();

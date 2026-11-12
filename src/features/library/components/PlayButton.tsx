@@ -1,4 +1,4 @@
-import { Play } from "lucide-react";
+import { Download, Play } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import buttons from "@/components/Button/buttons.module.css";
 import type { Game } from "@/lib/bindings";
@@ -16,7 +16,33 @@ export function PlayButton({ game, variant }: PlayButtonProps) {
   const { t } = useTranslation();
   const state = usePlayState(game.appId);
   const play = useSessionStore((store) => store.play);
+  const install = useSessionStore((store) => store.install);
   const busy = state !== "idle";
+
+  // Owned but not installed: the button asks Steam to install it instead.
+  if (game.installed === false && state === "idle") {
+    const label = t("card.install", { name: game.name });
+    return variant === "round" ? (
+      <button
+        type="button"
+        className={styles.round}
+        aria-label={label}
+        title={label}
+        onClick={() => void install(game.appId)}
+      >
+        <Download size={14} aria-hidden="true" />
+      </button>
+    ) : (
+      <button
+        type="button"
+        className={`${buttons.base} ${buttons.primary} ${styles.hero}`}
+        onClick={() => void install(game.appId)}
+      >
+        <Download size={16} aria-hidden="true" />
+        {t("hero.install")}
+      </button>
+    );
+  }
 
   const icon =
     state === "running" ? (

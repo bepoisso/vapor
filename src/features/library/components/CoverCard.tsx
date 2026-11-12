@@ -20,6 +20,7 @@ export function CoverCard({ game, variant = "shelf", subtitle }: CoverCardProps)
       to="/game/$appId"
       params={{ appId: String(game.appId) }}
       className={`${styles.cover} ${variant === "dense" ? styles.dense : ""}`}
+      data-installed={game.installed !== false}
       title={game.name}
     >
       {cover ? (

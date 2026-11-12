@@ -96,8 +96,19 @@ pub fn game_images(app_id: AppId, art: &ArtPaths, logo_usable: bool) -> GameImag
     }
 }
 
+/// URLs for a game Vapor has no local art index for (owned, not installed): the protocol looks
+/// in Steam's library cache, then the Steam CDN. Logos are skipped: their darkness is unknown.
+pub fn remote_game_images(app_id: AppId) -> GameImages {
+    GameImages {
+        cover: Some(image_url(app_id, ImageKind::Cover)),
+        hero: Some(image_url(app_id, ImageKind::Hero)),
+        hero_small: Some(image_url(app_id, ImageKind::HeroSmall)),
+        logo: None,
+    }
+}
+
 /// What a `vapor://` request asks for.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ImageRequest {
     Art(AppId, ImageKind),
     Avatar,
