@@ -36,6 +36,7 @@ Performance budgets (see `CLAUDE.md`) are checked at the end of every phase, not
 - Settings page: Steam API key (keychain), Steam path override, Steam account.
 - Owned games via `GetOwnedGames`; genres/categories via Store API (lazy, cached); achievements.
 - Vibe-tag mapping file + user tags.
+- Implemented: Settings (API key in the OS keychain, account, Steam folder, Store opt-in), owned games and achievements (Web API), Store genres/modes (opt-in), vibe mapping file, tag editor.
 - **Done when:** not-installed owned games appear (with Install), facets/moods use real genres/modes.
 
 ## Phase 5 — Smart shelves editing

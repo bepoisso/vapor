@@ -32,6 +32,10 @@ notify-debouncer-mini = "0.7"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
 fast_image_resize = { version = "6", features = ["image"] }
 dirs = "6"
+keyring = "4"
+reqwest = { version = "0.13", features = ["json", "query"] }
+tokio = { version = "1", features = ["time"] }
+tauri-plugin-opener = "2"
 
 [lints.rust]
 unsafe_code = "forbid"

@@ -2,19 +2,29 @@
 //! process launching. The frontend talks to it through typed Tauri commands only.
 
 mod commands;
+mod enrichment;
 mod error;
 mod images;
 mod library;
 mod model;
+mod protocol;
 mod sessions;
+mod settings;
 mod startup;
 mod steam;
+mod web;
 
+use std::sync::Arc;
+
+use enrichment::service::EnrichmentService;
 use library::service::{LibraryService, LibraryUpdated};
+use library::tags::Tagging;
 use sessions::{GameSessions, RunningGameChanged};
+use settings::SettingsStore;
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
 use tauri_specta::{Builder, collect_commands, collect_events};
+use web::HttpClient;
 
 /// Generated TypeScript bindings, relative to `src-tauri/`. Committed; CI checks it is up to date.
 #[cfg(any(debug_assertions, test))]
@@ -29,10 +39,18 @@ fn specta_builder() -> Builder<tauri::Wry> {
             commands::get_library,
             commands::get_profile,
             commands::get_running_game,
+            commands::get_settings,
             commands::install_game,
             commands::launch_game,
             commands::list_shelves,
+            commands::open_api_key_page,
+            commands::remove_api_key,
             commands::report_startup,
+            commands::save_api_key,
+            commands::set_account,
+            commands::set_game_tags,
+            commands::set_steam_path,
+            commands::set_store_enrichment,
         ])
         .events(collect_events![LibraryUpdated, RunningGameChanged])
 }
@@ -54,9 +72,15 @@ pub fn run() {
     let context = tauri::generate_context!();
     // Same folder as Tauri's `app_cache_dir`, resolved before the app starts so the library
     // (with its cached snapshot) exists before the webview's first command or image request.
+    let identifier = &context.config().identifier;
     let cache_dir = dirs::cache_dir()
         .unwrap_or_else(std::env::temp_dir)
-        .join(&context.config().identifier);
+        .join(identifier);
+    // Same folder as Tauri's `app_config_dir`.
+    let config_dir = dirs::config_dir()
+        .unwrap_or_else(std::env::temp_dir)
+        .join(identifier);
+    let settings = Arc::new(SettingsStore::load(&config_dir));
 
     #[cfg(debug_assertions)]
     export_bindings(&builder);
@@ -77,29 +101,25 @@ pub fn run() {
                 .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
                 .build(),
         )
+        // Rust-side use only (opening Steam's API key page); no frontend permission is granted.
+        .plugin(tauri_plugin_opener::init())
         .manage(process_start)
-        .manage(LibraryService::new(cache_dir))
-        .manage(GameSessions::new())
+        .manage(LibraryService::new(cache_dir.clone(), settings.clone()))
+        .manage(GameSessions::new(settings.clone()))
+        .manage(EnrichmentService::new(cache_dir))
+        .manage(HttpClient(web::client()))
+        .manage(Tagging::load(&config_dir))
+        .manage(settings)
         .register_asynchronous_uri_scheme_protocol(images::SCHEME, |ctx, request, responder| {
             let app = ctx.app_handle().clone();
-            tauri::async_runtime::spawn_blocking(move || {
-                let library = app.state::<LibraryService>();
-                let response = match images::parse_path(request.uri().path()) {
-                    None => images::bad_request(),
-                    Some(image) => match library.image_source(&image) {
-                        Some(source) => {
-                            images::serve(&source, image.kind(), &library.thumbnail_dir())
-                        }
-                        None => images::not_found(),
-                    },
-                };
-                responder.respond(response);
+            tauri::async_runtime::spawn(async move {
+                responder.respond(protocol::handle(app, request).await);
             });
         })
         .invoke_handler(builder.invoke_handler())
         .setup(move |app| {
             builder.mount_events(app);
-            LibraryService::start_background(app.handle().clone(), &app.state::<LibraryService>());
+            LibraryService::start_background(app.handle().clone());
             GameSessions::watch_running_game(app.handle().clone());
             Ok(())
         })

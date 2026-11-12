@@ -6,7 +6,10 @@ import { useSessionStore } from "../store/sessionStore";
 import { PlayButton } from "./PlayButton";
 
 vi.mock("@/lib/bindings", () => ({
-  commands: { launchGame: vi.fn().mockResolvedValue(null) },
+  commands: {
+    launchGame: vi.fn().mockResolvedValue(null),
+    installGame: vi.fn().mockResolvedValue(null),
+  },
   events: {},
 }));
 
@@ -39,5 +42,13 @@ describe("PlayButton", () => {
     useSessionStore.setState({ runningAppId: 1145360 });
     rerender(<PlayButton game={hades} variant="round" />);
     expect(screen.getByRole("button", { name: "Hades is running" })).toBeDisabled();
+  });
+
+  it("asks Steam to install a game that is not installed", async () => {
+    const owned = makeGame({ appId: 620, name: "Portal 2", installed: false });
+    render(<PlayButton game={owned} variant="round" />);
+    await userEvent.click(screen.getByRole("button", { name: "Install Portal 2" }));
+    expect(commands.installGame).toHaveBeenCalledWith(620);
+    expect(commands.launchGame).not.toHaveBeenCalledWith(620);
   });
 });

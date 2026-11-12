@@ -25,6 +25,22 @@ pub enum Error {
 
     #[error("failed to process image {path}: {message}")]
     Image { path: PathBuf, message: String },
+
+    /// Never includes URLs: they can carry the API key.
+    #[error("network error: {0}")]
+    Network(String),
+
+    #[error("Steam rejected the Web API key")]
+    InvalidApiKey,
+
+    #[error("a Steam Web API key is 32 hexadecimal characters")]
+    MalformedApiKey,
+
+    #[error("couldn't access the system keychain: {0}")]
+    Keychain(String),
+
+    #[error("{0} is not a Steam folder")]
+    NotASteamFolder(PathBuf),
 }
 
 /// What the frontend receives when a command fails.

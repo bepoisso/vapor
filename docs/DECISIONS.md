@@ -59,3 +59,20 @@ Short log of decisions taken with the owner. Newest last. Each entry: what, why,
 - **Steam not running**: `-silent` is added, so Steam starts in the tray without its main window. "Running" = `HKCU\Software\Valve\Steam\ActiveProcess\pid` is non-zero and that process is `steam.exe` (the PID is stale after a crash). When unsure, Vapor passes `-silent` anyway (harmless for a running Steam).
 - **Running indicator**: `HKCU\Software\Valve\Steam\RunningAppID` is polled every second on Windows and changes are sent as a `running-game-changed` event. Play buttons show "Launching…" from the click until Steam reports the game (up to 60 s, then reset), then "Playing" while it runs. Other platforms: launch works, no indicator yet.
 - **Steam's launch notice**: Steam still shows its small "launching…" notice for a moment. It appears for every `steam://` launch and there is no supported way to hide it, so it stays (verified by the owner on 2026-11-11).
+
+## 2026-11-12 — Phase 4a: Web API, settings, owned games
+- **No OpenID login.** The account comes from the local Steam install (`loginusers.vdf`); Settings can pick another account that signed in on this machine. No Steam login page inside Vapor.
+- **API key**: pasted in Settings, **checked against the Web API before it is stored** (a rejected key is never saved), then kept in the OS keychain (Windows Credential Manager, `keyring` crate), never in a file. Network error messages are stripped of URLs, since the key travels as a query parameter.
+- **Owned games** (`IPlayerService/GetOwnedGames`): refreshed in the background at most hourly, or when the key or account changes. Not-installed games appear in the library with an **Install** button, and their covers are dimmed. For installed games, playtime and last played take the larger of the local and Web API values (the Web API counts every machine).
+- **Achievements** (`ISteamUserStats/GetPlayerAchievements`): fetched for played games only, 150 ms apart, and fetched again only after the game was played again. Games without achievements show none.
+- **Art for not-installed games**: Steam's own `librarycache` first (Steam caches art for library games it has shown), then the public Steam CDN, downloaded once and cached in `<cache dir>/cdn/`. CDN misses are remembered for a week.
+- **Settings** live in `<config dir>/io.github.bepoisso.vapor/settings.json` (Steam folder override, account, Store opt-in). The Settings page opens from the profile menu (persona name, top right).
+
+## 2026-11-12 — Phase 4b: genres, modes and vibe tags
+- **Store `appdetails` is opt-in, off by default** (Settings → "Genres and modes from the Steam Store"). The endpoint is unofficial and undocumented; it is flagged in the UI and only called once the user turns it on. Requests go one at a time, 1.5 s apart (the endpoint allows ~200 per 5 min), and stop on HTTP 429. Results are cached for 30 days. Turning the option off forgets the fetched details.
+- From the Store details:
+  - **genre** = the first genre that isn't a business-model genre (Indie, Free To Play, Early Access, Massively Multiplayer);
+  - **modes** come from category IDs: Solo 2; Co-op 9, 38, 39, 48; PvP 36, 37, 47, 49;
+  - apps whose Store type is not `game`, `demo` or `mod` are dropped from the library. This complements the hand-kept non-game list.
+- **Vibe tags** = the bundled mapping `src-tauri/src/library/vibe-mapping.json` (Store genres and categories → vibes), which a copy at `<config dir>/io.github.bepoisso.vapor/vibe-mapping.json` overrides. "Hard" has no Store equivalent and comes only from the user's own tags.
+- **User tags**: edited from a cover's "⋯" menu (or right-click) in a modal `<dialog>`. They are stored as additions and removals on top of the mapped tags (`<config dir>/…/user-tags.json`), so remapping a game keeps the user's choices.

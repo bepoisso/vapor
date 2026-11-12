@@ -4,3 +4,4 @@ pub mod sample;
 pub mod service;
 pub mod shelves;
 pub mod snapshot;
+pub mod tags;

@@ -17,13 +17,34 @@ export const commands = {
 	getProfile: () => __TAURI_INVOKE<Profile>("get_profile"),
 	/**  The game Steam reports as running, if any. Changes arrive as `RunningGameChanged` events. */
 	getRunningGame: () => __TAURI_INVOKE<number | null>("get_running_game"),
+	getSettings: () => __TAURI_INVOKE<SettingsView>("get_settings"),
 	/**  Asks Steam to install a game. Steam shows its own install dialog (drive, size). */
 	installGame: (appId: number) => __TAURI_INVOKE<null>("install_game", { appId }),
 	/**  Asks Steam to launch a game (starting Steam silently in the tray if needed). */
 	launchGame: (appId: number) => __TAURI_INVOKE<null>("launch_game", { appId }),
 	listShelves: () => __TAURI_INVOKE<SmartShelf[]>("list_shelves"),
+	/**  Opens Steam's API key page in the default browser. */
+	openApiKeyPage: () => __TAURI_INVOKE<null>("open_api_key_page"),
+	/**  Deletes the key from the keychain and forgets the data fetched with it. */
+	removeApiKey: () => __TAURI_INVOKE<SettingsView>("remove_api_key"),
 	/**  Receives the frontend's startup marks (see `startup.rs`). No-op unless tracing is enabled. */
 	reportStartup: (marks: FrontendMarks) => __TAURI_INVOKE<null>("report_startup", { marks }),
+	/**
+	 *  Checks the key against the Web API (fetching the owned games), then stores it in the OS
+	 *  keychain. A rejected key is not stored.
+	 */
+	saveApiKey: (key: string) => __TAURI_INVOKE<SettingsView>("save_api_key", { key }),
+	/**  `null` returns to the most recent login. */
+	setAccount: (steamId: string | null) => __TAURI_INVOKE<SettingsView>("set_account", { steamId }),
+	/**  Saves the user's vibe tags for a game (kept as edits on top of the mapped tags). */
+	setGameTags: (appId: number, tags: string[]) => __TAURI_INVOKE<null>("set_game_tags", { appId, tags }),
+	/**  `null` returns to the detected Steam folder. */
+	setSteamPath: (path: string | null) => __TAURI_INVOKE<SettingsView>("set_steam_path", { path }),
+	/**
+	 *  Opt-in for the Store's unofficial `appdetails` endpoint (genres, modes). Turning it off
+	 *  also forgets the details fetched so far.
+	 */
+	setStoreEnrichment: (enabled: boolean) => __TAURI_INVOKE<SettingsView>("set_store_enrichment", { enabled }),
 };
 
 /** Events */
@@ -133,12 +154,42 @@ export type RunningGameChanged = {
 	appId: number | null,
 };
 
+export type SettingsView = {
+	/**  Where Vapor found Steam on its own. */
+	detectedSteamPath: string | null,
+	/**  The folder chosen by the user, if any. */
+	steamPath: string | null,
+	accounts: SteamAccount[],
+	/**  The account chosen by the user; `null` = the most recent login. */
+	account: string | null,
+	/**  The account whose library is shown. */
+	activeAccount: string | null,
+	hasApiKey: boolean,
+	/**  Owned games known from the Web API (for the active account). */
+	ownedGames: number | null,
+	/**  ISO 8601 time of the last successful owned-games sync. */
+	ownedSyncedAt: string | null,
+	syncError: string | null,
+	storeEnrichment: boolean,
+	/**  Games with Store details (genres, modes) when the Store opt-in is on. */
+	storeGames: number | null,
+};
+
 export type SmartShelf = {
 	id: string,
 	title: string,
 	rule: Rule,
 	order: number,
 	pinned: boolean,
+};
+
+/**
+ *  A Steam account that logged in on this machine. IDs are strings: SteamID64s exceed what a
+ *  JavaScript number holds exactly.
+ */
+export type SteamAccount = {
+	steamId: string,
+	personaName: string,
 };
 
 /* Tauri Specta runtime */

@@ -15,8 +15,6 @@ interface HeroProps {
 export function Hero({ game }: HeroProps) {
   const { t } = useTranslation();
   const lastPlayed = formatShortDate(game.lastPlayed);
-  const notInstalled = game.installed === false;
-  const install = useSessionStore((state) => state.install);
   const error = useSessionStore((state) =>
     state.error?.appId === game.appId ? state.error.message : null,
   );
@@ -48,17 +46,7 @@ export function Hero({ game }: HeroProps) {
           )}
         </div>
         <div className={styles.row}>
-          {notInstalled ? (
-            <button
-              type="button"
-              className={`${buttons.base} ${buttons.primary}`}
-              onClick={() => void install(game.appId)}
-            >
-              {t("hero.install")}
-            </button>
-          ) : (
-            <PlayButton game={game} variant="hero" />
-          )}
+          <PlayButton game={game} variant="hero" />
           <Link
             to="/game/$appId"
             params={{ appId: String(game.appId) }}

@@ -22,6 +22,13 @@ stub(window, "matchMedia", (query: string) => ({
   removeListener: () => undefined,
   dispatchEvent: () => false,
 }));
+stub(HTMLDialogElement.prototype, "showModal", function (this: HTMLDialogElement) {
+  this.open = true;
+});
+stub(HTMLDialogElement.prototype, "close", function (this: HTMLDialogElement) {
+  this.open = false;
+  this.dispatchEvent(new Event("close"));
+});
 stub(
   globalThis,
   "ResizeObserver",

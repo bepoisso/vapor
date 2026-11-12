@@ -21,9 +21,14 @@ impl SteamInstall {
     pub fn locate() -> Result<Self, Error> {
         candidates()
             .into_iter()
-            .find(|root| root.join("steamapps").is_dir() || root.join("config").is_dir())
             .map(Self::at)
+            .find(Self::looks_valid)
             .ok_or(Error::SteamNotFound)
+    }
+
+    /// True if the folder looks like a Steam install.
+    pub fn looks_valid(&self) -> bool {
+        self.root.join("steamapps").is_dir() || self.root.join("config").is_dir()
     }
 
     pub fn root(&self) -> &Path {

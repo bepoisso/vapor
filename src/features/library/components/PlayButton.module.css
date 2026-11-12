@@ -1,4 +1,9 @@
 /* Busy states keep the accent look (it is still the primary action, just not clickable). */
+.hero,
+.round {
+  --disabled-opacity: 1;
+}
+
 .hero:disabled,
 .round:disabled {
   cursor: default;

@@ -14,7 +14,15 @@ export function WideCard({ game }: WideCardProps) {
   return (
     <article className={styles.wide}>
       {game.images.heroSmall && (
-        <img className={styles.image} src={game.images.heroSmall} alt="" decoding="async" />
+        <img
+          className={styles.image}
+          src={game.images.heroSmall}
+          alt=""
+          decoding="async"
+          onError={(event) => {
+            event.currentTarget.hidden = true;
+          }}
+        />
       )}
       <span className={styles.scrim} />
       <Link to="/game/$appId" params={{ appId: String(game.appId) }} className={styles.link}>

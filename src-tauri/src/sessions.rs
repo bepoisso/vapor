@@ -1,5 +1,6 @@
 //! Game sessions: launch and install requests, and the "running" indicator on Play buttons.
 
+use std::sync::Arc;
 #[cfg(windows)]
 use std::time::Duration;
 
@@ -10,7 +11,7 @@ use tauri_specta::Event;
 
 use crate::error::Error;
 use crate::model::AppId;
-use crate::steam::SteamInstall;
+use crate::settings::SettingsStore;
 use crate::steam::client::{self, SteamAction};
 
 /// Steam updates `RunningAppID` within a second or two of a game starting or exiting.
@@ -25,19 +26,17 @@ pub struct RunningGameChanged {
 }
 
 pub struct GameSessions {
-    steam: Option<SteamInstall>,
+    settings: Arc<SettingsStore>,
 }
 
 impl GameSessions {
-    pub fn new() -> Self {
-        Self {
-            steam: SteamInstall::locate().ok(),
-        }
+    pub fn new(settings: Arc<SettingsStore>) -> Self {
+        Self { settings }
     }
 
     pub fn request(&self, action: SteamAction, app_id: AppId) -> Result<(), Error> {
-        let steam = self.steam.as_ref().ok_or(Error::SteamNotFound)?;
-        client::request(steam, action, app_id)
+        let steam = self.settings.steam_install().ok_or(Error::SteamNotFound)?;
+        client::request(&steam, action, app_id)
     }
 
     pub fn running_game(&self) -> Option<AppId> {
@@ -63,10 +62,4 @@ impl GameSessions {
     /// No reliable running-game signal outside Windows yet.
     #[cfg(not(windows))]
     pub fn watch_running_game(_app: AppHandle) {}
-}
-
-impl Default for GameSessions {
-    fn default() -> Self {
-        Self::new()
-    }
 }

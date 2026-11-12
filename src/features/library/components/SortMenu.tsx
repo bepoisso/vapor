@@ -1,7 +1,8 @@
 import { Check, ChevronDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import buttons from "@/components/Button/buttons.module.css";
+import menu from "@/components/Menu/Menu.module.css";
+import { useMenu } from "@/components/Menu/useMenu";
 import { SORT_KEYS, type SortKey } from "../logic/sorting";
 import styles from "./LibrarySection.module.css";
 
@@ -12,28 +13,7 @@ interface SortMenuProps {
 
 export function SortMenu({ value, onChange }: SortMenuProps) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpen(false);
-        buttonRef.current?.focus();
-      }
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
+  const { open, setOpen, close, rootRef, buttonRef } = useMenu();
 
   return (
     <div ref={rootRef} className={styles.sort}>
@@ -49,18 +29,17 @@ export function SortMenu({ value, onChange }: SortMenuProps) {
         <ChevronDown size={14} aria-hidden="true" />
       </button>
       {open && (
-        <ul className={styles.sortMenu} role="menu">
+        <ul className={menu.menu} role="menu">
           {SORT_KEYS.map((key) => (
             <li key={key} role="none">
               <button
                 type="button"
                 role="menuitemradio"
                 aria-checked={key === value}
-                className={styles.sortItem}
+                className={menu.item}
                 onClick={() => {
                   onChange(key);
-                  setOpen(false);
-                  buttonRef.current?.focus();
+                  close();
                 }}
               >
                 {t(`library.sort.${key}`)}
