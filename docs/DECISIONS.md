@@ -76,3 +76,10 @@ Short log of decisions taken with the owner. Newest last. Each entry: what, why,
   - apps whose Store type is not `game`, `demo` or `mod` are dropped from the library. This complements the hand-kept non-game list.
 - **Vibe tags** = the bundled mapping `src-tauri/src/library/vibe-mapping.json` (Store genres and categories → vibes), which a copy at `<config dir>/io.github.bepoisso.vapor/vibe-mapping.json` overrides. "Hard" has no Store equivalent and comes only from the user's own tags.
 - **User tags**: edited from a cover's "⋯" menu (or right-click) in a modal `<dialog>`. They are stored as additions and removals on top of the mapped tags (`<config dir>/…/user-tags.json`), so remapping a game keeps the user's choices.
+
+## 2026-11-12 — Phase 5: editing smart shelves
+- **Persistence**: shelves live in `<config dir>/io.github.bepoisso.vapor/shelves.json`. The defaults are seeded on first run and flagged `seeded`.
+- **Visibility**: a default shelf with no match stays hidden (spec). A shelf the user created or edited always shows, with "No game matches this rule yet.", so it never disappears before it can be fixed.
+- **Rule builder**: rows combined with "All conditions" (AND) or "Any condition" (OR). A row is a field plus its values: genre, mode and vibe accept several values, OR'ed. This is exactly the shape "Save as shelf" produces, so filter-made shelves stay editable. Rules of any other shape can still be renamed and deleted. An empty name defaults to the rule summary ("(Platformer or RPG) + Coop").
+- **Shelf actions**: a "⋯" menu next to the title offers Edit (name, rule, delete with a second click to confirm), Move up and Move down. Moves swap with the visible neighbor.
+- **Steam collections**: imported read-only from `userdata/<account>/config/cloudstorage/cloud-storage-namespace-1.json` (`user-collections.*`). They are shown after the smart shelves with a "Steam collection" badge. Dynamic collections, deleted ones and Steam's "hidden" collection are skipped. Games the user hid in Steam are not hidden in Vapor yet: that is a possible follow-up.

@@ -106,7 +106,61 @@
   "shelves": {
     "label": "Smart shelves",
     "seeAll": "See all ({{count}}) →",
-    "create": "+ Create a smart shelf"
+    "create": "+ Create a smart shelf",
+    "empty": "No game matches this rule yet.",
+    "collection": "Steam collection",
+    "menu": {
+      "more": "Actions for {{title}}",
+      "edit": "Edit…",
+      "moveUp": "Move up",
+      "moveDown": "Move down"
+    }
+  },
+  "shelfEditor": {
+    "newTitle": "New smart shelf",
+    "editTitle": "Edit smart shelf",
+    "name": "Name",
+    "namePlaceholder": "Shelf name",
+    "match": {
+      "label": "Show games matching",
+      "all": "All conditions",
+      "any": "Any condition"
+    },
+    "field": "Condition",
+    "operator": "Comparison",
+    "fields": {
+      "genre": "Genre",
+      "modes": "Mode",
+      "tags": "Vibe",
+      "installed": "Installed",
+      "playtimeMinutes": "Playtime",
+      "lastPlayed": "Not played for",
+      "achievementsPct": "Achievements"
+    },
+    "ops": {
+      "gt": "More than",
+      "lt": "Less than"
+    },
+    "units": {
+      "hours": "hours",
+      "days": "days",
+      "percent": "%"
+    },
+    "installed": {
+      "yes": "Installed",
+      "no": "Not installed"
+    },
+    "noValues": "None in your library yet.",
+    "addCondition": "+ Add condition",
+    "removeCondition": "Remove condition",
+    "preview_one": "{{count}} game matches.",
+    "preview_other": "{{count}} games match.",
+    "needsCondition": "Add at least one condition.",
+    "unsupported": "This rule ({{rule}}) can't be edited here. You can still rename or delete the shelf.",
+    "delete": "Delete shelf",
+    "confirmDelete": "Click again to delete",
+    "cancel": "Cancel",
+    "save": "Save"
   },
   "library": {
     "title": "Library",

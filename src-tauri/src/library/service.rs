@@ -24,6 +24,7 @@ use crate::images::{ImageKind, ImageRequest};
 use crate::model::{AppId, Game, Profile};
 use crate::settings::SettingsStore;
 use crate::steam::artwork::{self, ArtPaths};
+use crate::steam::collections::SteamCollection;
 
 /// `VAPOR_LIBRARY=sample` serves the mockup's sample library instead of the Steam install.
 const SOURCE_ENV: &str = "VAPOR_LIBRARY";
@@ -85,6 +86,17 @@ impl LibraryService {
     /// Whether art missing locally may be downloaded from the Steam CDN (not for the sample).
     pub fn uses_cdn(&self) -> bool {
         matches!(self.source, Source::Steam)
+    }
+
+    /// The account's Steam collections (none for the sample library).
+    pub fn collections(&self) -> Vec<SteamCollection> {
+        match self.source {
+            Source::Steam => self
+                .current()
+                .map(|snapshot| snapshot.collections.clone())
+                .unwrap_or_default(),
+            Source::Sample(_) => Vec::new(),
+        }
     }
 
     /// Whether games come from the Steam install (Store details and tags apply).
@@ -267,6 +279,7 @@ impl LibraryService {
         dirs.push(steam.config_dir());
         if let Some(user) = &snapshot.user {
             dirs.push(steam.user_config_dir(user.steam_id64));
+            dirs.push(steam.user_config_dir(user.steam_id64).join("cloudstorage"));
         }
         for dir in dirs {
             // A library on an unplugged drive is simply not watched.
@@ -291,7 +304,10 @@ fn is_relevant(path: &Path) -> bool {
     (name.starts_with("appmanifest_") && name.ends_with(".acf"))
         || matches!(
             name,
-            "libraryfolders.vdf" | "loginusers.vdf" | "localconfig.vdf"
+            "libraryfolders.vdf"
+                | "loginusers.vdf"
+                | "localconfig.vdf"
+                | "cloud-storage-namespace-1.json"
         )
 }
 

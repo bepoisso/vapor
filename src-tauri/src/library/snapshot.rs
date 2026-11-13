@@ -14,6 +14,7 @@ use crate::images::{self, ImageKind};
 use crate::model::{Achievements, AppId, Game, Profile};
 use crate::steam::activity::{self, AppActivity};
 use crate::steam::artwork::{self, ArtPaths};
+use crate::steam::collections::{self, SteamCollection};
 use crate::steam::manifests::{self, InstalledApp};
 use crate::steam::users::{self, SteamUser};
 use crate::steam::{SteamInstall, libraries, non_games};
@@ -33,6 +34,9 @@ pub struct Snapshot {
     pub art: BTreeMap<AppId, Art>,
     pub user: Option<SteamUser>,
     pub avatar: Option<PathBuf>,
+    /// The account's static Steam collections (read-only).
+    #[serde(default)]
+    pub collections: Vec<SteamCollection>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -115,8 +119,14 @@ pub fn scan(
         .map(|user| steam.avatar_file(user.steam_id64))
         .filter(|path| path.is_file());
 
+    let collections = user
+        .as_ref()
+        .map(|user| collections::read(&steam.collections_file(user.steam_id64)))
+        .unwrap_or_default();
+
     Ok(Snapshot {
         version: SNAPSHOT_VERSION,
+        collections,
         folders,
         apps,
         activity,
@@ -389,6 +399,13 @@ mod real_install {
             if art.paths.cover.is_none() {
                 println!("  no cover: {app_id}");
             }
+        }
+        for collection in &snapshot.collections {
+            println!(
+                "  collection: {} ({} games)",
+                collection.name,
+                collection.app_ids.len()
+            );
         }
         println!("scan: {cold:?} cold, {warm:?} with previous snapshot");
     }

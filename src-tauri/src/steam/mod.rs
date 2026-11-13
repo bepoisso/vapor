@@ -4,6 +4,7 @@
 pub mod activity;
 pub mod artwork;
 pub mod client;
+pub mod collections;
 pub mod install;
 pub mod libraries;
 pub mod manifests;

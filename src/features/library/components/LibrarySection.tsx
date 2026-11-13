@@ -2,10 +2,17 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import buttons from "@/components/Button/buttons.module.css";
 import type { Game } from "@/lib/bindings";
-import { buildFacets, facetCounts, hasSelection, passesFacets } from "../logic/facets";
+import {
+  buildFacets,
+  facetCounts,
+  hasSelection,
+  passesFacets,
+  selectionToRule,
+} from "../logic/facets";
 import { filterByName } from "../logic/search";
 import { sortGames } from "../logic/sorting";
 import { useFiltersStore } from "../store/filtersStore";
+import { useShelfEditorStore } from "../store/shelfEditorStore";
 import { FacetBox } from "./FacetBox";
 import { LibraryGrid } from "./LibraryGrid";
 import styles from "./LibrarySection.module.css";
@@ -28,6 +35,7 @@ export function LibrarySection({ games }: LibrarySectionProps) {
   const toggleFacetValue = useFiltersStore((state) => state.toggleFacetValue);
   const clearSelection = useFiltersStore((state) => state.clearSelection);
   const setSort = useFiltersStore((state) => state.setSort);
+  const openShelfEditor = useShelfEditorStore((state) => state.openNew);
 
   // Explicit memos: the React Compiler would merge these steps into one scope (filterByName may
   // return its input), re-sorting 1,000+ games on every keystroke. Sorting once and filtering
@@ -64,8 +72,11 @@ export function LibrarySection({ games }: LibrarySectionProps) {
             >
               {t("library.clear")}
             </button>
-            {/* Phase 5: converts the selection with selectionToRule() and opens the naming dialog. */}
-            <button type="button" className={`${buttons.base} ${buttons.smallAccent}`}>
+            <button
+              type="button"
+              className={`${buttons.base} ${buttons.smallAccent}`}
+              onClick={() => openShelfEditor(selectionToRule(selection))}
+            >
               {t("library.saveShelf")}
             </button>
           </>

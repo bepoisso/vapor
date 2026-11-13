@@ -1,6 +1,13 @@
 import { isTauri } from "@tauri-apps/api/core";
 import { create } from "zustand";
-import { commands, events, type Game, type Profile, type SmartShelf } from "@/lib/bindings";
+import {
+  commands,
+  events,
+  type Game,
+  type Profile,
+  type SmartShelf,
+  type SteamCollection,
+} from "@/lib/bindings";
 import { errorMessage } from "@/lib/errors";
 import { markLibraryLoaded } from "@/lib/startup";
 import { withSyntheticGames } from "./synthetic";
@@ -11,23 +18,34 @@ interface LibraryState {
   status: Status;
   games: readonly Game[];
   shelves: readonly SmartShelf[];
+  /** The account's Steam collections (read-only). */
+  collections: readonly SteamCollection[];
   profile: Profile | null;
   error: string | null;
   /** First load (shows the loading/error states). */
   load: () => Promise<void>;
   /** Background reload after the backend reported a change; keeps the current data on failure. */
   reload: () => Promise<void>;
+  /** Creates (empty `id`) or updates a shelf. Throws on failure (the editor shows it). */
+  saveShelf: (shelf: SmartShelf) => Promise<void>;
+  deleteShelf: (id: string) => Promise<void>;
+  /** Swaps two shelves (moving one past its visible neighbor). */
+  swapShelves: (id: string, otherId: string) => Promise<void>;
 }
 
+const byOrder = (shelves: readonly SmartShelf[]) => [...shelves].sort((a, b) => a.order - b.order);
+
 async function fetchLibrary() {
-  const [games, shelves, profile] = await Promise.all([
+  const [games, shelves, collections, profile] = await Promise.all([
     commands.getLibrary(),
     commands.listShelves(),
+    commands.listCollections(),
     commands.getProfile(),
   ]);
   return {
     games: withSyntheticGames(games),
-    shelves: [...shelves].sort((a, b) => a.order - b.order),
+    shelves: byOrder(shelves),
+    collections,
     profile,
   };
 }
@@ -37,6 +55,7 @@ export const useLibraryStore = create<LibraryState>()((set, get) => ({
   status: "idle",
   games: [],
   shelves: [],
+  collections: [],
   profile: null,
   error: null,
   load: async () => {
@@ -56,6 +75,21 @@ export const useLibraryStore = create<LibraryState>()((set, get) => ({
     } catch {
       // Keep showing what we have; the next change event retries.
     }
+  },
+  saveShelf: async (shelf) => {
+    set({ shelves: byOrder(await commands.saveShelf(shelf)) });
+  },
+  deleteShelf: async (id) => {
+    set({ shelves: byOrder(await commands.deleteShelf(id)) });
+  },
+  swapShelves: async (id, otherId) => {
+    const ids = get().shelves.map((shelf) => shelf.id);
+    const from = ids.indexOf(id);
+    const to = ids.indexOf(otherId);
+    if (from < 0 || to < 0) return;
+    ids[from] = otherId;
+    ids[to] = id;
+    set({ shelves: byOrder(await commands.reorderShelves(ids)) });
   },
 }));
 
