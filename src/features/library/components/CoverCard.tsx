@@ -16,7 +16,9 @@ interface CoverCardProps {
 export function CoverCard({ game, variant = "shelf", subtitle }: CoverCardProps) {
   const [broken, setBroken] = useState(false);
   const openTagEditor = useTagEditorStore((state) => state.open);
-  const cover = broken ? null : game.images.cover;
+  const source =
+    variant === "dense" ? (game.images.coverSmall ?? game.images.cover) : game.images.cover;
+  const cover = broken ? null : source;
 
   return (
     <div className={styles.card}>

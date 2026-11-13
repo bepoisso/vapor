@@ -128,8 +128,10 @@ export type Game = {
 
 /**  URLs served by the `vapor` protocol (see `images.rs`). `null` when the art does not exist. */
 export type GameImages = {
-	/**  Cover thumbnail, sized for grids and shelves. */
+	/**  Cover thumbnail, sized for shelves. */
 	cover: string | null,
+	/**  Smaller cover thumbnail, for the dense library grid. */
+	coverSmall: string | null,
 	/**  Full-size banner, for the hero. */
 	hero: string | null,
 	/**  Banner thumbnail, for wide cards. */

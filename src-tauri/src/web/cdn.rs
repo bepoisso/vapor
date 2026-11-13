@@ -17,7 +17,7 @@ const MISS_TTL: Duration = Duration::from_secs(7 * 24 * 3600);
 
 fn file_name(kind: ImageKind) -> &'static str {
     match kind {
-        ImageKind::Cover => "library_600x900.jpg",
+        ImageKind::Cover | ImageKind::CoverSmall => "library_600x900.jpg",
         ImageKind::Hero | ImageKind::HeroSmall => "library_hero.jpg",
         ImageKind::Logo => "logo.png",
     }

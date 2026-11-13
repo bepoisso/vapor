@@ -12,7 +12,7 @@ export function makeGame(overrides: Partial<Game> & Pick<Game, "appId" | "name">
     achievements: null,
     cloud: null,
     updatePending: null,
-    images: { cover: null, hero: null, heroSmall: null, logo: null },
+    images: { cover: null, coverSmall: null, hero: null, heroSmall: null, logo: null },
     ...overrides,
   };
 }
