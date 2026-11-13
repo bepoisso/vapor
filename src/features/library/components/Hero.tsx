@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
+import { Link } from "@/components/Link";
+import { useTranslation } from "@/i18n";
 import buttons from "@/components/Button/buttons.module.css";
 import type { Game } from "@/lib/bindings";
 import { formatPlaytime, formatShortDate } from "../logic/format";
@@ -47,11 +47,7 @@ export function Hero({ game }: HeroProps) {
         </div>
         <div className={styles.row}>
           <PlayButton game={game} variant="hero" />
-          <Link
-            to="/game/$appId"
-            params={{ appId: String(game.appId) }}
-            className={`${buttons.base} ${buttons.ghost}`}
-          >
+          <Link to={`/game/${game.appId}`} className={`${buttons.base} ${buttons.ghost}`}>
             {t("hero.gamePage")}
           </Link>
           {stats.length > 0 && <span className={styles.meta}>{stats.join(" · ")}</span>}

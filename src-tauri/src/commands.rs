@@ -51,9 +51,7 @@ async fn with_library<T: Send + 'static>(
 ) -> CommandResult<T> {
     tauri::async_runtime::spawn_blocking(move || work(&app.state::<LibraryService>()))
         .await
-        .map_err(|error| CommandError {
-            message: error.to_string(),
-        })?
+        .map_err(CommandError::other)?
         .map_err(CommandError::from)
 }
 
@@ -116,9 +114,7 @@ async fn request_steam(app: AppHandle, action: SteamAction, app_id: AppId) -> Co
         app.state::<GameSessions>().request(action, app_id)
     })
     .await
-    .map_err(|error| CommandError {
-        message: error.to_string(),
-    })?
+    .map_err(CommandError::other)?
     .map_err(CommandError::from)
 }
 
@@ -330,9 +326,7 @@ pub async fn set_account(app: AppHandle, steam_id: Option<String>) -> CommandRes
     let steam_id64 = steam_id
         .map(|id| id.parse::<u64>())
         .transpose()
-        .map_err(|error| CommandError {
-            message: error.to_string(),
-        })?;
+        .map_err(CommandError::other)?;
     app.state::<Arc<SettingsStore>>()
         .update(|settings| settings.steam_id64 = steam_id64)?;
     LibraryService::reconfigure(&app);
@@ -361,9 +355,7 @@ pub async fn set_store_enrichment(app: AppHandle, enabled: bool) -> CommandResul
 pub async fn open_api_key_page(app: AppHandle) -> CommandResult<()> {
     app.opener()
         .open_url(API_KEY_PAGE, None::<&str>)
-        .map_err(|error| CommandError {
-            message: error.to_string(),
-        })
+        .map_err(CommandError::other)
 }
 
 const API_KEY_PAGE: &str = "https://steamcommunity.com/dev/apikey";

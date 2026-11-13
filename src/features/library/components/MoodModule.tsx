@@ -1,5 +1,5 @@
 import { Sparkle } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/i18n";
 import type { Game } from "@/lib/bindings";
 import { useNow } from "../hooks/useNow";
 import { matchesRule } from "../logic/rules";

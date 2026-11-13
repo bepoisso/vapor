@@ -1,6 +1,6 @@
-import { useNavigate } from "@tanstack/react-router";
 import { Settings, User } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { navigate } from "@/app/navigation";
+import { useTranslation } from "@/i18n";
 import menu from "@/components/Menu/Menu.module.css";
 import { useMenu } from "@/components/Menu/useMenu";
 import { useLibraryStore } from "@/features/library/store/libraryStore";
@@ -9,14 +9,13 @@ import styles from "./TopBar.module.css";
 /** Persona name and Steam avatar; opens the account menu (Profile, Settings). */
 export function ProfileButton() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const profile = useLibraryStore((state) => state.profile);
   const name = profile?.personaName ?? null;
   const { open, setOpen, close, rootRef, buttonRef } = useMenu();
 
   const go = (to: "/profile" | "/settings") => {
     close();
-    void navigate({ to });
+    navigate(to);
   };
 
   return (

@@ -76,6 +76,7 @@ export type CloudStatus = "synced" | "pending" | "conflict" | "unknown";
 
 /**  What the frontend receives when a command fails. */
 export type CommandError = {
+	kind: ErrorKind,
 	message: string,
 };
 
@@ -87,12 +88,17 @@ export type Condition = {
 
 export type ConditionValue = boolean | number | null | string;
 
+/**  What kind of failure, so the UI can offer the right way out (e.g. "Open Settings"). */
+export type ErrorKind = "steamNotFound" | "invalidApiKey" | "network" | "other";
+
 export type Field = "genre" | "modes" | "tags" | "installed" | "playtimeMinutes" | "lastPlayed" | "achievementsPct";
 
 /**  Marks measured by the frontend, in ms relative to `navigation_start` (`performance.timeOrigin`). */
 export type FrontendMarks = {
 	navigationStart: number | null,
 	scriptStart: number | null,
+	/**  Every module of the bundle evaluated (top of `main.tsx`). */
+	modulesEvaluated: number | null,
 	/**  `get_library`, `list_shelves` and `get_profile` resolved. */
 	libraryLoaded: number | null,
 	/**  The page committed a render with the data. */

@@ -1,7 +1,7 @@
-import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { type ChangeEvent, type KeyboardEvent, useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
+import { navigate, usePath } from "@/app/navigation";
+import { useTranslation } from "@/i18n";
 import { LIBRARY_SECTION_ID } from "@/features/library/components/LibrarySection";
 import { useFiltersStore } from "@/features/library/store/filtersStore";
 import { useLibraryStore } from "@/features/library/store/libraryStore";
@@ -28,8 +28,7 @@ export function SearchField() {
   const gameCount = useLibraryStore((state) =>
     state.status === "ready" ? state.games.length : null,
   );
-  const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const navigate = useNavigate();
+  const pathname = usePath();
 
   useEffect(() => {
     function onKeyDown(event: globalThis.KeyboardEvent) {
@@ -48,7 +47,9 @@ export function SearchField() {
     const startedTyping = query.trim() === "" && value.trim() !== "";
     setQuery(value);
     if (pathname !== "/") {
-      void navigate({ to: "/" }).then(scrollToLibrary);
+      navigate("/");
+      // The Library renders on the next frame; scroll once it is there.
+      requestAnimationFrame(scrollToLibrary);
     } else if (startedTyping) {
       scrollToLibrary();
     }

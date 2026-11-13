@@ -2,13 +2,14 @@ import { isTauri } from "@tauri-apps/api/core";
 import { create } from "zustand";
 import {
   commands,
+  type ErrorKind,
   events,
   type Game,
   type Profile,
   type SmartShelf,
   type SteamCollection,
 } from "@/lib/bindings";
-import { errorMessage } from "@/lib/errors";
+import { errorKind, errorMessage } from "@/lib/errors";
 import { markLibraryLoaded } from "@/lib/startup";
 import { withSyntheticGames } from "./synthetic";
 
@@ -22,6 +23,7 @@ interface LibraryState {
   collections: readonly SteamCollection[];
   profile: Profile | null;
   error: string | null;
+  errorKind: ErrorKind | null;
   /** First load (shows the loading/error states). */
   load: () => Promise<void>;
   /** Background reload after the backend reported a change; keeps the current data on failure. */
@@ -58,20 +60,21 @@ export const useLibraryStore = create<LibraryState>()((set, get) => ({
   collections: [],
   profile: null,
   error: null,
+  errorKind: null,
   load: async () => {
     if (get().status === "loading") return;
-    set({ status: "loading", error: null });
+    set({ status: "loading", error: null, errorKind: null });
     try {
       const data = await fetchLibrary();
       markLibraryLoaded();
       set({ status: "ready", ...data });
     } catch (error) {
-      set({ status: "error", error: errorMessage(error) });
+      set({ status: "error", error: errorMessage(error), errorKind: errorKind(error) });
     }
   },
   reload: async () => {
     try {
-      set({ status: "ready", error: null, ...(await fetchLibrary()) });
+      set({ status: "ready", error: null, errorKind: null, ...(await fetchLibrary()) });
     } catch {
       // Keep showing what we have; the next change event retries.
     }

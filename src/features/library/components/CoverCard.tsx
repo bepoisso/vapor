@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/Link";
 import { useState } from "react";
 import type { Game } from "@/lib/bindings";
 import { useTagEditorStore } from "../store/tagEditorStore";
@@ -21,8 +21,7 @@ export function CoverCard({ game, variant = "shelf", subtitle }: CoverCardProps)
   return (
     <div className={styles.card}>
       <Link
-        to="/game/$appId"
-        params={{ appId: String(game.appId) }}
+        to={`/game/${game.appId}`}
         className={`${styles.cover} ${variant === "dense" ? styles.dense : ""}`}
         data-installed={game.installed !== false}
         title={game.name}

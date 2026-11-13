@@ -1,5 +1,5 @@
 import { Download, Play } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/i18n";
 import buttons from "@/components/Button/buttons.module.css";
 import type { Game } from "@/lib/bindings";
 import { usePlayState, useSessionStore } from "../store/sessionStore";

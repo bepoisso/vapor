@@ -43,15 +43,42 @@ pub enum Error {
     NotASteamFolder(PathBuf),
 }
 
+/// What kind of failure, so the UI can offer the right way out (e.g. "Open Settings").
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub enum ErrorKind {
+    SteamNotFound,
+    InvalidApiKey,
+    Network,
+    Other,
+}
+
 /// What the frontend receives when a command fails.
 #[derive(Debug, Serialize, Type)]
 pub struct CommandError {
+    pub kind: ErrorKind,
     pub message: String,
+}
+
+impl CommandError {
+    pub fn other(error: impl std::fmt::Display) -> Self {
+        Self {
+            kind: ErrorKind::Other,
+            message: error.to_string(),
+        }
+    }
 }
 
 impl From<Error> for CommandError {
     fn from(error: Error) -> Self {
+        let kind = match error {
+            Error::SteamNotFound | Error::NotASteamFolder(_) => ErrorKind::SteamNotFound,
+            Error::InvalidApiKey | Error::MalformedApiKey => ErrorKind::InvalidApiKey,
+            Error::Network(_) => ErrorKind::Network,
+            _ => ErrorKind::Other,
+        };
         Self {
+            kind,
             message: error.to_string(),
         }
     }

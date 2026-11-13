@@ -30,6 +30,8 @@ fn epoch_ms(time: SystemTime) -> f64 {
 pub struct FrontendMarks {
     pub navigation_start: f64,
     pub script_start: f64,
+    /// Every module of the bundle evaluated (top of `main.tsx`).
+    pub modules_evaluated: f64,
     /// `get_library`, `list_shelves` and `get_profile` resolved.
     pub library_loaded: f64,
     /// The page committed a render with the data.
@@ -44,7 +46,8 @@ pub struct FrontendMarks {
 struct Trace {
     process_to_navigation: f64,
     navigation_to_script: f64,
-    script_to_library: f64,
+    script_to_modules: f64,
+    modules_to_library: f64,
     library_to_render: f64,
     render_to_font: f64,
     font_to_content: f64,
@@ -61,7 +64,8 @@ pub fn record(process_start: &ProcessStart, marks: &FrontendMarks) {
     let trace = Trace {
         process_to_navigation,
         navigation_to_script: marks.script_start,
-        script_to_library: marks.library_loaded - marks.script_start,
+        script_to_modules: marks.modules_evaluated - marks.script_start,
+        modules_to_library: marks.library_loaded - marks.modules_evaluated,
         library_to_render: marks.data_ready - marks.library_loaded,
         render_to_font: marks.font_ready - marks.data_ready,
         font_to_content: marks.content_shown - marks.font_ready,

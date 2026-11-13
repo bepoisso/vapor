@@ -18,7 +18,8 @@ const TRACE = resolve("artifacts/startup-trace.jsonl");
 interface Trace {
   processToNavigation: number;
   navigationToScript: number;
-  scriptToLibrary: number;
+  scriptToModules: number;
+  modulesToLibrary: number;
   libraryToRender: number;
   renderToFont: number;
   fontToContent: number;
@@ -55,7 +56,8 @@ if (traces.length === 0) throw new Error("No startup trace recorded");
 const stages: (keyof Trace)[] = [
   "processToNavigation",
   "navigationToScript",
-  "scriptToLibrary",
+  "scriptToModules",
+  "modulesToLibrary",
   "libraryToRender",
   "renderToFont",
   "fontToContent",
