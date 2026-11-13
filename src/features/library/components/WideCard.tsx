@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/Link";
 import type { Game } from "@/lib/bindings";
 import { PlayButton } from "./PlayButton";
 import styles from "./WideCard.module.css";
@@ -25,7 +25,7 @@ export function WideCard({ game }: WideCardProps) {
         />
       )}
       <span className={styles.scrim} />
-      <Link to="/game/$appId" params={{ appId: String(game.appId) }} className={styles.link}>
+      <Link to={`/game/${game.appId}`} className={styles.link}>
         <span className={styles.text}>
           <span className={styles.title}>{game.name}</span>
           {subtitle && <span className={styles.subtitle}>{subtitle}</span>}

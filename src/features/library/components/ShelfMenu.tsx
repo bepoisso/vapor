@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, Ellipsis, Pencil } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/i18n";
 import menu from "@/components/Menu/Menu.module.css";
 import { useMenu } from "@/components/Menu/useMenu";
 import type { SmartShelf } from "@/lib/bindings";

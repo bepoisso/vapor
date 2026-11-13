@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import buttons from "@/components/Button/buttons.module.css";
+import { useTranslation } from "@/i18n";
 import { markDataReady, revealContent } from "@/lib/startup";
 import { Hero } from "./components/Hero";
+import { LibraryNotice } from "./components/LibraryNotice";
 import { LibrarySection } from "./components/LibrarySection";
 import { MoodModule } from "./components/MoodModule";
 import { RecentlyPlayed } from "./components/RecentlyPlayed";
@@ -19,6 +19,7 @@ export function LibraryPage() {
   const shelves = useLibraryStore((state) => state.shelves);
   const collections = useLibraryStore((state) => state.collections);
   const error = useLibraryStore((state) => state.error);
+  const errorKind = useLibraryStore((state) => state.errorKind);
   const load = useLibraryStore((state) => state.load);
 
   // The content fades in once rendered with data (no half-filled page flashing in).
@@ -32,17 +33,15 @@ export function LibraryPage() {
   if (status === "error") {
     return (
       <main className={styles.page}>
-        <div className={styles.error} role="alert">
-          <p>{t("status.error")}</p>
-          {error && <p className={styles.errorDetail}>{error}</p>}
-          <button
-            type="button"
-            className={`${buttons.base} ${buttons.small}`}
-            onClick={() => void load()}
-          >
-            {t("status.retry")}
-          </button>
-        </div>
+        <LibraryNotice reason={errorKind ?? "other"} detail={error} onRetry={() => void load()} />
+      </main>
+    );
+  }
+
+  if (status === "ready" && games.length === 0) {
+    return (
+      <main className={styles.page}>
+        <LibraryNotice reason="empty" onRetry={() => void load()} />
       </main>
     );
   }

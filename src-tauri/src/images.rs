@@ -29,6 +29,7 @@ const THUMBNAIL_QUALITY: u8 = 85;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ImageKind {
     Cover,
+    CoverSmall,
     Hero,
     HeroSmall,
     Logo,
@@ -38,6 +39,7 @@ impl ImageKind {
     fn as_str(self) -> &'static str {
         match self {
             Self::Cover => "cover",
+            Self::CoverSmall => "cover-small",
             Self::Hero => "hero",
             Self::HeroSmall => "hero-small",
             Self::Logo => "logo",
@@ -47,6 +49,7 @@ impl ImageKind {
     fn parse(value: &str) -> Option<Self> {
         match value {
             "cover" => Some(Self::Cover),
+            "cover-small" => Some(Self::CoverSmall),
             "hero" => Some(Self::Hero),
             "hero-small" => Some(Self::HeroSmall),
             "logo" => Some(Self::Logo),
@@ -54,11 +57,13 @@ impl ImageKind {
         }
     }
 
-    /// Width of the generated thumbnail, or `None` to serve the original file. Covers are shown
-    /// at most ~180 CSS px wide, wide cards ~340: 2× for high-DPI screens.
+    /// Width of the generated thumbnail, or `None` to serve the original file. Shelf covers are
+    /// shown up to ~180 CSS px wide, dense-grid covers ~120, wide cards ~340: 2× for high-DPI
+    /// screens. Smaller files also mean less decoded-image memory in WebView2.
     fn thumbnail_width(self) -> Option<u32> {
         match self {
             Self::Cover => Some(360),
+            Self::CoverSmall => Some(240),
             Self::HeroSmall => Some(720),
             Self::Hero | Self::Logo => None,
         }
@@ -66,7 +71,7 @@ impl ImageKind {
 
     pub fn source(self, art: &ArtPaths) -> Option<&Path> {
         match self {
-            Self::Cover => art.cover.as_deref(),
+            Self::Cover | Self::CoverSmall => art.cover.as_deref(),
             Self::Hero | Self::HeroSmall => art.hero.as_deref(),
             Self::Logo => art.logo.as_deref(),
         }
@@ -86,6 +91,7 @@ pub fn game_images(app_id: AppId, art: &ArtPaths, logo_usable: bool) -> GameImag
     let url = |kind: ImageKind| kind.source(art).map(|_| image_url(app_id, kind));
     GameImages {
         cover: url(ImageKind::Cover),
+        cover_small: url(ImageKind::CoverSmall),
         hero: url(ImageKind::Hero),
         hero_small: url(ImageKind::HeroSmall),
         logo: if logo_usable {
@@ -101,6 +107,7 @@ pub fn game_images(app_id: AppId, art: &ArtPaths, logo_usable: bool) -> GameImag
 pub fn remote_game_images(app_id: AppId) -> GameImages {
     GameImages {
         cover: Some(image_url(app_id, ImageKind::Cover)),
+        cover_small: Some(image_url(app_id, ImageKind::CoverSmall)),
         hero: Some(image_url(app_id, ImageKind::Hero)),
         hero_small: Some(image_url(app_id, ImageKind::HeroSmall)),
         logo: None,

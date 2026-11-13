@@ -52,8 +52,10 @@ pub enum CloudStatus {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub struct GameImages {
-    /// Cover thumbnail, sized for grids and shelves.
+    /// Cover thumbnail, sized for shelves.
     pub cover: Option<String>,
+    /// Smaller cover thumbnail, for the dense library grid.
+    pub cover_small: Option<String>,
     /// Full-size banner, for the hero.
     pub hero: Option<String>,
     /// Banner thumbnail, for wide cards.

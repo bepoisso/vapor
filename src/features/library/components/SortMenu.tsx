@@ -1,5 +1,5 @@
 import { Check, ChevronDown } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/i18n";
 import buttons from "@/components/Button/buttons.module.css";
 import menu from "@/components/Menu/Menu.module.css";
 import { useMenu } from "@/components/Menu/useMenu";

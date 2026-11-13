@@ -19,18 +19,17 @@
     "test:watch": "vitest",
     "compare:mockup": "node scripts/compare-mockup.ts",
     "perf:library": "node scripts/perf-library.ts",
-    "perf:startup": "node scripts/perf-startup.ts"
+    "perf:startup": "node scripts/perf-startup.ts",
+    "check:bundle": "node scripts/check-bundle-size.ts",
+    "perf:memory": "node scripts/perf-memory.ts"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
-    "@tanstack/react-router": "^1.170.46",
     "@tanstack/react-virtual": "^3.14.26",
     "@tauri-apps/api": "^2.12.4",
-    "i18next": "^27.1.1",
     "lucide-react": "^1.72.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-i18next": "^18.0.1",
     "zustand": "^5.1.0"
   },
   "devDependencies": {

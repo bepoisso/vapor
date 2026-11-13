@@ -1,11 +1,9 @@
-import i18n from "@/i18n";
+import { t } from "@/i18n";
 import { formatPlaytime, formatShortDate } from "./format";
 import { ruleSummary } from "./ruleSummary";
 import { filterByName } from "./search";
 import { recentlyPlayed, sortGames } from "./sorting";
 import { makeGame } from "./testGames";
-
-const t = i18n.t.bind(i18n);
 
 describe("formatPlaytime", () => {
   it("formats minutes and hours", () => {

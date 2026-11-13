@@ -68,7 +68,16 @@
   },
   "status": {
     "error": "Couldn't load your library.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "openSettings": "Open Settings",
+    "steamNotFound": {
+      "title": "Vapor couldn't find Steam.",
+      "body": "Install Steam, or tell Vapor which folder it is in."
+    },
+    "empty": {
+      "title": "No games yet.",
+      "body": "Install a game with Steam, or add your Steam Web API key in Settings to see every game you own."
+    }
   },
   "hero": {
     "kicker": "Continue · Last played {{date}}",

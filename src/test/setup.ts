@@ -1,7 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
-import "@/i18n";
 
 // Content starts transparent until the startup reveal; tests see it revealed.
 document.documentElement.dataset.ready = "";

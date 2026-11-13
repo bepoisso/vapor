@@ -1,8 +1,5 @@
-import { RouterProvider } from "@tanstack/react-router";
-import { createAppRouter } from "./router";
-
-const router = createAppRouter();
+import { AppShell } from "./AppShell";
 
 export function App() {
-  return <RouterProvider router={router} />;
+  return <AppShell />;
 }

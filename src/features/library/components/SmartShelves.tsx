@@ -1,6 +1,6 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "@/components/Link";
 import { Bookmark } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/i18n";
 import buttons from "@/components/Button/buttons.module.css";
 import type { Game, SmartShelf, SteamCollection } from "@/lib/bindings";
 import { useNow } from "../hooks/useNow";
@@ -58,11 +58,7 @@ export function SmartShelves({ shelves, collections, games }: SmartShelvesProps)
                   nextId={filled[index + 1]?.shelf.id}
                 />
                 {matching.length > 0 && (
-                  <Link
-                    to="/shelf/$shelfId"
-                    params={{ shelfId: shelf.id }}
-                    className={section.linkMuted}
-                  >
+                  <Link to={`/shelf/${shelf.id}`} className={section.linkMuted}>
                     {t("shelves.seeAll", { count: matching.length })}
                   </Link>
                 )}

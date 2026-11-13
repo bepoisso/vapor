@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/i18n";
 import type { Facet, FacetCounts, FacetKey, FacetSelection } from "../logic/facets";
 import { FacetChip } from "./FacetChip";
 import styles from "./LibrarySection.module.css";

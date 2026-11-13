@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
+import { NavLink } from "@/components/Link";
+import { useTranslation } from "@/i18n";
 import { BrandMark } from "./BrandMark";
 import { ProfileButton } from "./ProfileButton";
 import { SearchField } from "./SearchField";
@@ -20,15 +20,15 @@ export function TopBar() {
       <BrandMark />
 
       <nav className={styles.nav} aria-label={t("nav.label")}>
-        <Link to="/store" className={styles.navItem}>
+        <NavLink to="/store" className={styles.navItem}>
           {t("nav.store")}
-        </Link>
-        <Link to="/" className={styles.navItem} activeOptions={{ exact: true }}>
+        </NavLink>
+        <NavLink to="/" className={styles.navItem}>
           {t("nav.library")}
-        </Link>
-        <Link to="/community" className={styles.navItem}>
+        </NavLink>
+        <NavLink to="/community" className={styles.navItem}>
           {t("nav.community")}
-        </Link>
+        </NavLink>
       </nav>
 
       <SearchField />

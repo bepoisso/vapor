@@ -10,8 +10,9 @@ import { withApp } from "./lib/app.ts";
 
 const args = process.argv.slice(2);
 const RELEASE = args.includes("--release");
-const GAMES = Number(args.find((arg) => /^d+$/.test(arg)) ?? 3000);
+const GAMES = Number(args.find((arg) => /^\d+$/.test(arg)) ?? 3000);
 const SCROLL_MS = 4000;
+const REPEATS = 8;
 
 interface FrameStats {
   frames: number;
@@ -124,15 +125,25 @@ await withApp(
     await page.evaluate(() =>
       window.scrollTo(0, document.getElementById("library")?.offsetTop ?? 0),
     );
-    const timings = {
-      "chip on": await measureInteraction(page, "chip", "Indie"),
-      "chip off": await measureInteraction(page, "chip", "Indie"),
-      search: await measureInteraction(page, "search", "hollow"),
-      clear: await measureInteraction(page, "search", ""),
+    // Single samples are noisy (±5 ms): repeat each interaction and report medians.
+    const samples: Record<string, InteractionTiming[]> = {
+      "chip on": [],
+      "chip off": [],
+      search: [],
+      clear: [],
     };
-    for (const [name, timing] of Object.entries(timings)) {
+    for (let round = 0; round < REPEATS; round++) {
+      samples["chip on"]?.push(await measureInteraction(page, "chip", "Indie"));
+      samples["chip off"]?.push(await measureInteraction(page, "chip", "Indie"));
+      samples.search?.push(await measureInteraction(page, "search", "hollow"));
+      samples.clear?.push(await measureInteraction(page, "search", ""));
+    }
+    const median = (values: number[]) =>
+      [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)] ?? 0;
+    for (const [name, timings] of Object.entries(samples)) {
+      const pick = (key: keyof InteractionTiming) => median(timings.map((timing) => timing[key]));
       console.log(
-        `${name.padEnd(9)} js ${timing.js} ms, layout ${timing.layout} ms, to next paint ${timing.total} ms`,
+        `${name.padEnd(9)} median of ${timings.length}: js ${pick("js")} ms, layout ${pick("layout")} ms, to next paint ${pick("total")} ms`,
       );
     }
 

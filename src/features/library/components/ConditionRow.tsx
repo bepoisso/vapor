@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/i18n";
 import type { Field, Op } from "@/lib/bindings";
 import { DRAFT_FIELDS, defaultRow, type DraftRow, LIST_FIELDS } from "../logic/ruleDraft";
 import styles from "./ShelfEditor.module.css";

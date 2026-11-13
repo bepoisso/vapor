@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
+import { Link } from "@/components/Link";
+import { useTranslation } from "@/i18n";
 import type { Game } from "@/lib/bindings";
 import { CoverRow } from "./CoverRow";
 import section from "./Section.module.css";

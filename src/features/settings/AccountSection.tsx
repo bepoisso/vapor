@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "@/i18n";
 import { commands, type SettingsView } from "@/lib/bindings";
 import type { useSettings } from "./useSettings";
 import styles from "./SettingsPage.module.css";

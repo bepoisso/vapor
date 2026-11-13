@@ -58,7 +58,13 @@ export async function withApp(
     stdio: "ignore",
     env: {
       ...process.env,
-      WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${CDP_PORT}`,
+      // Keep flags set by the caller (e.g. perf experiments), add the debugging port.
+      WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: [
+        process.env.WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS,
+        `--remote-debugging-port=${CDP_PORT}`,
+      ]
+        .filter(Boolean)
+        .join(" "),
       ...(sample ? { VAPOR_LIBRARY: "sample" } : {}),
     },
   });

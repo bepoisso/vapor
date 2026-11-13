@@ -49,3 +49,6 @@ jobs:
 
       - name: Build app
         run: pnpm tauri build --no-bundle
+
+      - name: Bundle size budget
+        run: pnpm check:bundle

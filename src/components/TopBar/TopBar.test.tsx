@@ -1,11 +1,10 @@
-import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { createAppRouter } from "@/app/router";
+import { App } from "@/app/App";
 
 function renderAt(path: string) {
-  const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }));
-  render(<RouterProvider router={router} />);
+  window.location.hash = path;
+  render(<App />);
 }
 
 describe("TopBar", () => {

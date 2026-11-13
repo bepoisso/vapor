@@ -11,6 +11,7 @@ import { commands } from "./bindings";
  */
 
 const scriptStart = performance.now();
+let modulesEvaluated: number | null = null;
 let libraryLoaded: number | null = null;
 let dataReady: number | null = null;
 let fontReady: number | null = null;
@@ -20,6 +21,11 @@ let revealed = false;
 const FONT_WAIT_MS = 200;
 /** Reveal anyway if the page never reports data (e.g. another route, or a stuck load). */
 const REVEAL_FALLBACK_MS = 1500;
+
+/** Called at the top of `main.tsx`: every imported module has been evaluated. */
+export function markModulesEvaluated(): void {
+  modulesEvaluated ??= performance.now();
+}
 
 export function markLibraryLoaded(): void {
   libraryLoaded ??= performance.now();
@@ -56,6 +62,7 @@ export async function revealContent(): Promise<void> {
     .reportStartup({
       navigationStart: performance.timeOrigin,
       scriptStart,
+      modulesEvaluated: modulesEvaluated ?? scriptStart,
       libraryLoaded: libraryLoaded ?? contentShown,
       dataReady: dataReady ?? contentShown,
       fontReady,

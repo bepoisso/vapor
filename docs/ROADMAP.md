@@ -44,12 +44,13 @@ Performance budgets (see `CLAUDE.md`) are checked at the end of every phase, not
 - Rule builder modal, "Save as shelf" from facets, reorder/rename/delete, import Steam collections read-only.
 - Delivered: shelves.json persistence, rule builder dialog (all/any, multi-value rows, live preview), shelf menu (edit, move up/down, delete), Save as shelf, Steam collections as read-only rows.
 
-## Phase 6 — Performance & polish
+## Phase 6 — Performance & polish (in review)
 - Profile with a synthetic library of 3,000 games; enforce the budgets in CI where measurable.
 - Empty and error states, offline mode.
 - Startup: ~90 ms of JS evaluation before the first render (React, router, i18next). Candidates: a minimal hash router, a typed English-only string table instead of i18next.
 - Memory: WebView2 uses ~260 MB private memory with real art (GPU process ~150 MB). Investigate texture use (thumbnail sizes, hero size) or revisit the budget.
 - **Done when:** every budget in `CLAUDE.md` is met on the owner's machine.
+- Delivered: startup bundle 473 → 339 KB (i18next and TanStack Router replaced), CI bundle budget, memoized grid cards, smaller grid thumbnails, typed errors with "Steam not found" and empty states, `pnpm perf:memory`. Measurements and the open RAM decision are in DECISIONS.md.
 
 ## Phase 7 — Distribution
 - NSIS/MSI installers via `tauri-action`, GitHub Releases, signed auto-update (`tauri-plugin-updater`).

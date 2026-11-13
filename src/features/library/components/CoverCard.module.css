@@ -76,22 +76,24 @@
   opacity: 1;
 }
 
-/* "⋯" menu: over the top-right corner of the cover, shown on hover or keyboard focus. */
+/*
+ * "⋯" menu: over the top-right corner of the cover, shown on hover or keyboard focus. Hidden
+ * with display:none (not opacity) so the dozens of idle buttons in a grid are not painted at all.
+ * Keyboard: focusing the card shows it, and Tab reaches it next.
+ */
 .menu {
   position: absolute;
   top: 8px;
   right: 8px;
   z-index: 3;
-  opacity: 0;
-  transition:
-    opacity var(--dur-fast) var(--ease-out),
-    transform var(--dur-base) var(--ease-out);
+  display: none;
+  transition: transform var(--dur-base) var(--ease-out);
 }
 
 .card:hover .menu,
-.menu:focus-within,
+.card:focus-within .menu,
 .menu[data-open="true"] {
-  opacity: 1;
+  display: block;
 }
 
 /* Follow the cover's hover lift. */

@@ -1,7 +1,6 @@
-import { createMemoryHistory, RouterProvider } from "@tanstack/react-router";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { createAppRouter } from "@/app/router";
+import { App } from "@/app/App";
 import type { Game, SmartShelf } from "@/lib/bindings";
 import { makeGame } from "./logic/testGames";
 import { EMPTY_SELECTION } from "./logic/facets";
@@ -70,8 +69,8 @@ function renderLibrary() {
     sort: "name",
     moodId: "friends",
   });
-  const router = createAppRouter(createMemoryHistory({ initialEntries: ["/"] }));
-  render(<RouterProvider router={router} />);
+  window.location.hash = "#/";
+  render(<App />);
 }
 
 const libraryCount = () =>
@@ -172,9 +171,8 @@ describe("LibraryPage", () => {
       sort: "name",
       moodId: "friends",
     });
-    render(
-      <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: ["/"] }))} />,
-    );
+    window.location.hash = "#/";
+    render(<App />);
 
     expect(await screen.findByText("Continue · Last played Jan 6")).toBeInTheDocument();
     expect(screen.getByText("46.8 h · Cloud synced")).toBeInTheDocument();
@@ -209,13 +207,43 @@ describe("LibraryPage", () => {
       sort: "name",
       moodId: "friends",
     });
-    render(
-      <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: ["/"] }))} />,
-    );
+    window.location.hash = "#/";
+    render(<App />);
 
     expect(await screen.findByRole("heading", { name: "My backlog" })).toBeInTheDocument();
     expect(screen.getByText("No game matches this rule yet.")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Favoris" })).toBeInTheDocument();
     expect(screen.getByText("Steam collection")).toBeInTheDocument();
+  });
+
+  it("explains when Steam can't be found and points to Settings", async () => {
+    useLibraryStore.setState({
+      status: "error",
+      error: "Steam installation not found",
+      errorKind: "steamNotFound",
+    });
+    window.location.hash = "#/";
+    render(<App />);
+    expect(
+      await screen.findByRole("heading", { name: "Vapor couldn't find Steam." }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Settings" })).toHaveAttribute(
+      "href",
+      "#/settings",
+    );
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+  });
+
+  it("shows an empty state when there is no game", async () => {
+    useLibraryStore.setState({
+      status: "ready",
+      games: [],
+      shelves: [],
+      collections: [],
+      error: null,
+    });
+    window.location.hash = "#/";
+    render(<App />);
+    expect(await screen.findByRole("heading", { name: "No games yet." })).toBeInTheDocument();
   });
 });
