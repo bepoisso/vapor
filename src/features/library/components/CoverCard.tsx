@@ -1,5 +1,5 @@
 import { Link } from "@/components/Link";
-import { useState } from "react";
+import { memo, useState } from "react";
 import type { Game } from "@/lib/bindings";
 import { useTagEditorStore } from "../store/tagEditorStore";
 import { CardMenu } from "./CardMenu";
@@ -12,8 +12,16 @@ interface CoverCardProps {
   subtitle?: string;
 }
 
-/** 2:3 cover, title below. The card links to the game page; "⋯" (or right-click) edits tags. */
-export function CoverCard({ game, variant = "shelf", subtitle }: CoverCardProps) {
+/**
+ * 2:3 cover, title below. The card links to the game page; "⋯" (or right-click) edits tags.
+ * Memoized: the virtualized grid re-renders on every scroll frame and filter change, and a card
+ * whose game object did not change has nothing new to draw.
+ */
+export const CoverCard = memo(function CoverCard({
+  game,
+  variant = "shelf",
+  subtitle,
+}: CoverCardProps) {
   const [broken, setBroken] = useState(false);
   const openTagEditor = useTagEditorStore((state) => state.open);
   const source =
@@ -52,4 +60,4 @@ export function CoverCard({ game, variant = "shelf", subtitle }: CoverCardProps)
       <CardMenu game={game} />
     </div>
   );
-}
+});

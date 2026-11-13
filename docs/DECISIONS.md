@@ -83,3 +83,16 @@ Short log of decisions taken with the owner. Newest last. Each entry: what, why,
 - **Rule builder**: rows combined with "All conditions" (AND) or "Any condition" (OR). A row is a field plus its values: genre, mode and vibe accept several values, OR'ed. This is exactly the shape "Save as shelf" produces, so filter-made shelves stay editable. Rules of any other shape can still be renamed and deleted. An empty name defaults to the rule summary ("(Platformer or RPG) + Coop").
 - **Shelf actions**: a "⋯" menu next to the title offers Edit (name, rule, delete with a second click to confirm), Move up and Move down. Moves swap with the visible neighbor.
 - **Steam collections**: imported read-only from `userdata/<account>/config/cloudstorage/cloud-storage-namespace-1.json` (`user-collections.*`). They are shown after the smart shelves with a "Steam collection" badge. Dynamic collections, deleted ones and Steam's "hidden" collection are skipped. Games the user hid in Steam are not hidden in Vapor yet: that is a possible follow-up.
+
+## 2026-11-13 — Phase 6: performance
+- **i18next → a typed string table** (`src/i18n`): the same `useTranslation()` / `t()` API, keys checked at compile time, plurals via `Intl.PluralRules`. The UI is English only, so the framework was ~100 KB of startup code for nothing. Adding a language later means adding a locale file and a picker.
+- **TanStack Router → a minimal hash router** (`src/app/navigation.ts`, `src/components/Link.tsx`): links are plain `<a href="#/…">`, which matters with one link per cover in grids; `NavLink` handles the top bar tabs. Unknown paths show the Library.
+- **Startup bundle**: 473 KB → 339 KB (153 → 107 KB gzip). `pnpm check:bundle` runs in CI and fails above 380 KB / 125 KB gzip.
+- **Grid**: `CoverCard` is memoized, idle "⋯" buttons use `display: none` (not painted), and the dense grid uses 240 px thumbnails (shelves keep 360 px).
+- **Typed errors**: a command error has a `kind` (`steamNotFound`, `invalidApiKey`, `network`, `other`). The Library shows a "Vapor couldn't find Steam" notice with Open Settings, and an empty state when there is no game.
+- **Measured** (owner's machine, release build, 2560×1369 at 180 Hz):
+  - startup: window visible in ~50 ms; library painted in ~628 ms, down from ~700 ms (WebView2 ~423 ms, JS parse 68 ms, module evaluation 16 ms (was 32), page render 32 ms (was 41));
+  - scroll with 3,000 games: 180 fps, p95 frame 5.7 ms, no frame over 20 ms;
+  - interactions, median to the next painted frame (vsync wait included), at 200 / 3,000 games: search 7.7 / 17.5 ms, clear search 14.4 / 17 ms, facet chip 16–19 / 20–22 ms;
+  - memory: Vapor 11 MB + WebView2 ~270 MB private (~285 MB total), of which the WebView2 GPU process is ~157 MB.
+- **RAM budget (< 150 MB): open.** It is only reachable with `--disable-gpu` (software rendering: ~147 MB total). The cost is scroll dropping from 180 fps (p95 5.7 ms) to 119 fps (p95 16.6 ms, still 60 fps) and interactions getting 5–9 ms slower. `--disable-gpu-rasterization` gives ~248 MB, and `--enable-low-end-device-mode` has no effect. Decision pending with the owner.
