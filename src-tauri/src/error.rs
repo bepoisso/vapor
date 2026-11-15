@@ -47,6 +47,10 @@ pub enum Error {
 
     #[error("game {0} is not in the library")]
     UnknownGame(u32),
+
+    /// Never includes URLs (the update endpoint is public, but keep messages short).
+    #[error("couldn't update Vapor: {0}")]
+    Update(String),
 }
 
 /// What kind of failure, so the UI can offer the right way out (e.g. "Open Settings").

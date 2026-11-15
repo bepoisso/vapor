@@ -148,3 +148,17 @@
   gap: 10px;
   font-size: var(--fs-13);
 }
+
+.notes {
+  margin: 0;
+  max-height: 160px;
+  overflow: auto;
+  white-space: pre-line;
+  font-size: var(--fs-13);
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.status:empty {
+  display: none;
+}

@@ -9,6 +9,7 @@ import { App } from "./app/App";
 import { listenForLibraryUpdates, useLibraryStore } from "./features/library/store/libraryStore";
 import { listenForRunningGame } from "./features/library/store/sessionStore";
 import { listenForGameUpdates } from "./features/game/store/gameStore";
+import { checkForUpdateLater } from "./features/settings/updateStore";
 import geistLatin from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url";
 
 markModulesEvaluated();
@@ -28,6 +29,7 @@ void useLibraryStore.getState().load();
 listenForLibraryUpdates();
 listenForRunningGame();
 listenForGameUpdates();
+checkForUpdateLater();
 // Pages restore their own scroll offset once rendered (see useScrollMemory).
 window.history.scrollRestoration = "manual";
 

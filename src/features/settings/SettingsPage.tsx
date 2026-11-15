@@ -3,6 +3,7 @@ import { AccountSection } from "./AccountSection";
 import { ApiKeySection } from "./ApiKeySection";
 import { HiddenGamesSection } from "./HiddenGamesSection";
 import { ShelvesSection } from "./ShelvesSection";
+import { UpdatesSection } from "./UpdatesSection";
 import { SteamFolderSection } from "./SteamFolderSection";
 import { StoreSection } from "./StoreSection";
 import { useSettings } from "./useSettings";
@@ -24,6 +25,7 @@ export function SettingsPage() {
           <SteamFolderSection view={view} settings={settings} />
           <ShelvesSection />
           <HiddenGamesSection />
+          <UpdatesSection />
         </>
       )}
     </main>

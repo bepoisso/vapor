@@ -14,6 +14,7 @@ mod sessions;
 mod settings;
 mod startup;
 mod steam;
+mod updates;
 mod web;
 
 use std::sync::Arc;
@@ -32,6 +33,7 @@ use settings::SettingsStore;
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
 use tauri_specta::{Builder, collect_commands, collect_events};
+use updates::PendingUpdate;
 use web::HttpClient;
 
 /// Generated TypeScript bindings, relative to `src-tauri/`. Committed; CI checks it is up to date.
@@ -45,6 +47,8 @@ fn specta_builder() -> Builder<tauri::Wry> {
         .commands(collect_commands![
             commands::app_info,
             commands::browse_game_files,
+            updates::check_for_update,
+            updates::install_update,
             commands::delete_shelf,
             commands::game_action,
             commands::get_game,
@@ -112,7 +116,8 @@ pub fn run() {
         .unwrap_or_else(std::env::temp_dir)
         .join(identifier);
     let settings = Arc::new(SettingsStore::load(&config_dir));
-    // The sample library keeps its tag edits, favorites and notes apart from the real ones.
+    // The sample library keeps its shelves, tag edits, favorites and notes apart from the real
+    // ones.
     let user_dir = if library_service::sample_requested() {
         config_dir.join("sample")
     } else {
@@ -140,6 +145,9 @@ pub fn run() {
         )
         // Rust-side use only (opening Steam's API key page); no frontend permission is granted.
         .plugin(tauri_plugin_opener::init())
+        // Rust-side use only (`updates.rs`); no frontend permission is granted.
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(PendingUpdate::default())
         .manage(process_start)
         .manage(LibraryService::new(cache_dir.clone(), settings.clone()))
         .manage(GameSessions::new(settings.clone()))
@@ -151,7 +159,7 @@ pub fn run() {
         .manage(HttpClient(web::client()))
         .manage(Tagging::load(&user_dir))
         .manage(GameUserData::load(&user_dir))
-        .manage(ShelfStore::load(&config_dir))
+        .manage(ShelfStore::load(&user_dir))
         .manage(settings)
         .register_asynchronous_uri_scheme_protocol(images::SCHEME, |ctx, request, responder| {
             let app = ctx.app_handle().clone();
