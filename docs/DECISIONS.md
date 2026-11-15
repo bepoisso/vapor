@@ -118,3 +118,12 @@ Short log of decisions taken with the owner. Newest last. Each entry: what, why,
 ## 2026-11-15 — Library rows and search (owner feedback)
 - **Cover rows** (Recently played, smart shelves, Steam collections) still show as many covers as fit, and get side arrows when there are more games; each click moves **one game**.
 - **Search** is now a results box under the field (up to 8 games: names starting with the query, then names with a word starting with it, then the rest; A–Z within). Picking a result, or `Enter` on the highlighted one, opens the game page. It no longer filters the Library grid nor scrolls to it: the facets do the filtering.
+
+## 2026-11-15 — Smart shelves redesign (SMART_SHELVES_SPEC.md)
+- **One rule shape** everywhere (shelves, moods, "Save as shelf", "Appears in"): `{ match: "all" | "any", conditions: [{ field, values[], op?, value? }] }`. Replaces the nested `{ all, any }` rules. Playtime conditions are in **hours** (they were minutes).
+- **Shelf kinds**: smart (rule), manual (Favorites: its games come from the favorite toggles, i.e. Steam's Favorites plus the user's changes) and Steam (an imported collection, read-only, games re-read from Steam at each listing; "—" when the collection is gone).
+- **`shelves.json` v2** (`{ version, shelves }`). First-format files are migrated on load: rules converted, Favorites added, and the Steam collections the library used to show are imported **visible** once known, so the owner's library looks the same. "Import my Steam collections" afterwards adds new ones **hidden** (spec).
+- **Seeded on first run**: Demanding indies (pinned), Big stories, Online, Favorites. The sample file's "Friends night" (it duplicates the default "Play with friends" mood) and "[Your Steam collection]" placeholder are examples, not seeded.
+- **Pinned shelves come first**; moves (arrows, Alt+↑/↓, drag and drop) stay inside the pinned or unpinned group.
+- **Screens**: shelf page `/shelf/<id>` (rule edits apply and save at once, with Undo), full-page builder `/shelves/new` and `/shelves/<id>/edit` (replaces the editor dialog), "My shelves" `/shelves`, and the "Save as shelf" dialog. All lazy-loaded.
+- "Recently added" is not offered as a sort: Vapor has no acquisition dates.

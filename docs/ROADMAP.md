@@ -44,6 +44,11 @@ Performance budgets (see `CLAUDE.md`) are checked at the end of every phase, not
 - Rule builder modal, "Save as shelf" from facets, reorder/rename/delete, import Steam collections read-only.
 - Delivered: shelves.json persistence, rule builder dialog (all/any, multi-value rows, live preview), shelf menu (edit, move up/down, delete), Save as shelf, Steam collections as read-only rows.
 
+## Phase 5 v2 — Smart shelves redesign (in review)
+- Spec: `docs/SMART_SHELVES_SPEC.md`; mockups `shelf.html`, `shelf-builder.html`, `shelves-manage.html`, `shelf-save-dialog.html`.
+- 5a engine and storage (new rule shape, `almostMatches`, `ruleLabel`, `ruleSentence`, `facetsToRule`, shelves.json v2 with migration) · 5b shelf page · 5c builder and Save as shelf dialog · 5d My shelves (reorder, visibility, pin, rename/duplicate/delete, Steam import).
+- **Done when:** a shelf created from facets appears in the library at the chosen place, its page lists the right games, reordering/hiding in My shelves is reflected on the library, and the engine tests pass.
+
 ## Phase 6 — Performance & polish (in review)
 - Profile with a synthetic library of 3,000 games; enforce the budgets in CI where measurable.
 - Empty and error states, offline mode.
