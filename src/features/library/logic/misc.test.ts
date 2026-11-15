@@ -1,7 +1,5 @@
-import { t } from "@/i18n";
 import { formatPlaytime, formatShortDate } from "./format";
-import { ruleSummary } from "./ruleSummary";
-import { filterByName } from "./search";
+import { searchGames } from "./search";
 import { recentlyPlayed, sortGames } from "./sorting";
 import { makeGame } from "./testGames";
 
@@ -23,52 +21,6 @@ describe("formatShortDate", () => {
   });
 });
 
-describe("ruleSummary", () => {
-  it("joins AND with + and OR with or", () => {
-    expect(
-      ruleSummary(
-        {
-          all: [
-            { field: "tags", op: "includes", value: "Indie" },
-            { field: "tags", op: "includes", value: "Hard" },
-          ],
-        },
-        t,
-      ),
-    ).toBe("Indie + Hard");
-    expect(
-      ruleSummary(
-        {
-          any: [
-            { field: "modes", op: "includes", value: "Coop" },
-            { field: "modes", op: "includes", value: "PvP" },
-          ],
-        },
-        t,
-      ),
-    ).toBe("Coop or PvP");
-  });
-
-  it("parenthesizes nested groups", () => {
-    expect(
-      ruleSummary(
-        {
-          all: [
-            {
-              any: [
-                { field: "genre", op: "includes", value: "Platformer" },
-                { field: "genre", op: "includes", value: "RPG" },
-              ],
-            },
-            { field: "installed", op: "eq", value: true },
-          ],
-        },
-        t,
-      ),
-    ).toBe("(Platformer or RPG) + Installed");
-  });
-});
-
 describe("sorting & search", () => {
   const games = [
     makeGame({ appId: 1, name: "Hades", playtimeMinutes: 100, lastPlayed: "2025-12-29" }),
@@ -83,7 +35,23 @@ describe("sorting & search", () => {
   });
 
   it("matches names case- and accent-insensitively", () => {
-    expect(filterByName(games, "POKEMON").map((g) => g.appId)).toEqual([3]);
-    expect(filterByName(games, "  ")).toHaveLength(3);
+    expect(searchGames(games, "POKEMON").map((g) => g.appId)).toEqual([3]);
+    expect(searchGames(games, "  ")).toEqual([]);
+  });
+
+  it("ranks names starting with the query first, then word starts, then the rest", () => {
+    const library = [
+      makeGame({ appId: 1, name: "Super Hades" }),
+      makeGame({ appId: 2, name: "Shadeshift" }),
+      makeGame({ appId: 3, name: "Hades" }),
+      makeGame({ appId: 4, name: "Hades II" }),
+    ];
+    expect(searchGames(library, "hades").map((g) => g.name)).toEqual([
+      "Hades",
+      "Hades II",
+      "Super Hades",
+      "Shadeshift",
+    ]);
+    expect(searchGames(library, "hades", 2)).toHaveLength(2);
   });
 });

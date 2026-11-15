@@ -1,5 +1,44 @@
+.wrap {
+  position: relative;
+}
+
 .row {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 18px;
+}
+
+/* Page arrows: centered on the row's edge, over the covers (above their hover lift). */
+.arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--overlay-border);
+  border-radius: 50%;
+  background: var(--topbar-scrolled);
+  color: var(--text-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lift);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.arrow:hover {
+  background: var(--surface-3);
+  border-color: var(--accent);
+}
+
+.previous {
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+
+.next {
+  right: 0;
+  transform: translate(50%, -50%);
 }

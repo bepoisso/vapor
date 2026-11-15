@@ -109,12 +109,38 @@ pub struct TagEdits {
     pub added: Vec<String>,
     #[serde(default)]
     pub removed: Vec<String>,
+    /// The user's genre, replacing the mapped one (`""`: no genre).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub genre: Option<String>,
+    /// The user's modes, replacing the mapped ones.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub modes: Option<Vec<Mode>>,
+}
+
+/// Genre, modes and vibe tags of a game.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Classification {
+    pub genre: Option<String>,
+    pub modes: Vec<Mode>,
+    pub tags: Vec<String>,
+}
+
+impl Classification {
+    pub fn of(game: &Game) -> Self {
+        Self {
+            genre: game.genre.clone(),
+            modes: game.modes.clone(),
+            tags: game.tags.clone(),
+        }
+    }
 }
 
 impl TagEdits {
-    /// Edits that turn `mapped` into `wanted`.
+    /// Tag edits that turn `mapped` into `wanted`.
     pub fn between(mapped: &[String], wanted: &[String]) -> Self {
         Self {
+            genre: None,
+            modes: None,
             added: wanted
                 .iter()
                 .filter(|tag| !mapped.contains(tag))
@@ -138,7 +164,22 @@ impl TagEdits {
     }
 
     fn is_empty(&self) -> bool {
-        self.added.is_empty() && self.removed.is_empty()
+        self.added.is_empty()
+            && self.removed.is_empty()
+            && self.genre.is_none()
+            && self.modes.is_none()
+    }
+
+    fn apply_all(&self, base: Classification) -> Classification {
+        Classification {
+            genre: match &self.genre {
+                Some(genre) if genre.is_empty() => None,
+                Some(genre) => Some(genre.clone()),
+                None => base.genre,
+            },
+            modes: self.modes.clone().unwrap_or(base.modes),
+            tags: self.apply(&base.tags),
+        }
     }
 }
 
@@ -163,10 +204,17 @@ impl Tagging {
         }
     }
 
-    fn mapped_tags(&self, details: Option<&StoreDetails>) -> Vec<String> {
-        details
-            .map(|details| self.mapping.tags(details))
-            .unwrap_or_default()
+    /// The classification a game has before the user's edits: from its Store details, else
+    /// what it came with (nothing for Steam games, the sample's own values for the sample).
+    pub fn base(&self, game: &Game, details: Option<&StoreDetails>) -> Classification {
+        match details {
+            Some(details) => Classification {
+                genre: primary_genre(details),
+                modes: modes(details),
+                tags: self.mapping.tags(details),
+            },
+            None => Classification::of(game),
+        }
     }
 
     /// Fills genre, modes and tags, and drops apps the Store says are not games.
@@ -175,32 +223,62 @@ impl Tagging {
         let details = |app_id: AppId| store.get(&app_id).and_then(|entry| entry.details.as_ref());
         games.retain(|game| details(game.app_id).is_none_or(is_playable));
         for game in games.iter_mut() {
-            let details = details(game.app_id);
-            if let Some(details) = details {
-                game.genre = primary_genre(details);
-                game.modes = modes(details);
-            }
-            let mapped = self.mapped_tags(details);
-            game.tags = match user.get(&game.app_id) {
-                Some(edits) => edits.apply(&mapped),
-                None => mapped,
+            let base = self.base(game, details(game.app_id));
+            let Classification { genre, modes, tags } = match user.get(&game.app_id) {
+                Some(edits) => edits.apply_all(base),
+                None => base,
             };
+            game.genre = genre;
+            game.modes = modes;
+            game.tags = tags;
         }
     }
 
-    /// Saves the user's tags for a game as edits relative to its mapped tags.
+    /// Saves the user's vibe tags for a game, keeping any genre or mode edit.
     pub fn set_tags(
         &self,
         app_id: AppId,
-        wanted: Vec<String>,
-        details: Option<&StoreDetails>,
+        tags: Vec<String>,
+        base: &Classification,
     ) -> Result<(), Error> {
-        let wanted: Vec<String> = wanted
+        let current = self
+            .user
+            .read()
+            .unwrap_or_else(PoisonError::into_inner)
+            .get(&app_id)
+            .cloned()
+            .unwrap_or_default();
+        let wanted = Classification {
+            tags,
+            ..current.apply_all(base.clone())
+        };
+        self.set_classification(app_id, wanted, base)
+    }
+
+    /// Saves the user's genre, modes and tags as edits relative to `base`.
+    pub fn set_classification(
+        &self,
+        app_id: AppId,
+        wanted: Classification,
+        base: &Classification,
+    ) -> Result<(), Error> {
+        let tags: Vec<String> = wanted
+            .tags
             .into_iter()
             .map(|tag| tag.trim().to_owned())
             .filter(|tag| !tag.is_empty())
             .collect();
-        let edits = TagEdits::between(&self.mapped_tags(details), &wanted);
+        let genre = wanted
+            .genre
+            .map(|genre| genre.trim().to_owned())
+            .filter(|genre| !genre.is_empty());
+        let same_modes = wanted.modes.len() == base.modes.len()
+            && wanted.modes.iter().all(|mode| base.modes.contains(mode));
+        let edits = TagEdits {
+            genre: (genre != base.genre).then(|| genre.unwrap_or_default()),
+            modes: (!same_modes).then_some(wanted.modes),
+            ..TagEdits::between(&base.tags, &tags)
+        };
         let mut user = self.user.write().unwrap_or_else(PoisonError::into_inner);
         if edits.is_empty() {
             user.remove(&app_id);
@@ -227,6 +305,7 @@ mod tests {
             app_type: "game".into(),
             genres: genres.iter().map(|genre| (*genre).to_owned()).collect(),
             categories: categories.to_vec(),
+            developers: None,
         }
     }
 
@@ -270,6 +349,53 @@ mod tests {
         // If the mapping later adds a tag, the user's edits still apply on top.
         let remapped = vec!["Indie".to_owned(), "Story".to_owned(), "Chill".to_owned()];
         assert_eq!(edits.apply(&remapped), ["Indie", "Chill", "Hard"]);
+    }
+
+    #[test]
+    fn genre_and_mode_edits_replace_the_mapped_ones() {
+        let dir = std::env::temp_dir().join(format!("vapor-tags-test-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let tagging = Tagging::load(&dir);
+        let edits = |app_id| tagging.user.read().unwrap().get(&app_id).cloned();
+        let base = Classification {
+            genre: Some("Platformer".into()),
+            modes: vec![Mode::Solo],
+            tags: vec!["Indie".into()],
+        };
+        let wanted = Classification {
+            genre: Some("Adventure".into()),
+            modes: vec![Mode::Solo, Mode::Coop],
+            tags: vec!["Indie".into(), "Hard".into()],
+        };
+        tagging
+            .set_classification(1, wanted.clone(), &base)
+            .unwrap();
+        assert_eq!(edits(1).unwrap().apply_all(base.clone()), wanted);
+
+        // Editing only the tags keeps the genre and mode edits.
+        tagging.set_tags(1, vec!["Story".into()], &base).unwrap();
+        assert_eq!(
+            edits(1).unwrap().apply_all(base.clone()),
+            Classification {
+                tags: vec!["Story".into()],
+                ..wanted
+            }
+        );
+
+        // Back to the base: nothing kept.
+        tagging.set_classification(1, base.clone(), &base).unwrap();
+        assert_eq!(edits(1), None);
+
+        // No genre at all.
+        let no_genre = Classification {
+            genre: None,
+            ..base.clone()
+        };
+        tagging
+            .set_classification(1, no_genre.clone(), &base)
+            .unwrap();
+        assert_eq!(edits(1).unwrap().apply_all(base), no_genre);
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]

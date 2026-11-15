@@ -7,6 +7,7 @@ import { LibrarySection } from "./components/LibrarySection";
 import { MoodModule } from "./components/MoodModule";
 import { RecentlyPlayed } from "./components/RecentlyPlayed";
 import { SmartShelves } from "./components/SmartShelves";
+import { useScrollMemory } from "./hooks/useScrollMemory";
 import { recentlyPlayed } from "./logic/sorting";
 import { useLibraryStore } from "./store/libraryStore";
 import styles from "./LibraryPage.module.css";
@@ -17,7 +18,6 @@ export function LibraryPage() {
   const status = useLibraryStore((state) => state.status);
   const games = useLibraryStore((state) => state.games);
   const shelves = useLibraryStore((state) => state.shelves);
-  const collections = useLibraryStore((state) => state.collections);
   const error = useLibraryStore((state) => state.error);
   const errorKind = useLibraryStore((state) => state.errorKind);
   const load = useLibraryStore((state) => state.load);
@@ -29,6 +29,7 @@ export function LibraryPage() {
     markDataReady();
     void revealContent();
   }, [settled]);
+  useScrollMemory(status === "ready" && games.length > 0);
 
   if (status === "error") {
     return (
@@ -57,7 +58,7 @@ export function LibraryPage() {
           {heroGame ? <Hero game={heroGame} /> : <div className={styles.heroSpacer} />}
           <RecentlyPlayed games={recent} />
           <MoodModule games={games} />
-          <SmartShelves shelves={shelves} collections={collections} games={games} />
+          <SmartShelves shelves={shelves} games={games} />
           <LibrarySection games={games} />
         </>
       )}

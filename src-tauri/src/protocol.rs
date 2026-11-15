@@ -1,22 +1,25 @@
 //! The `vapor://` protocol handler: finds the file behind an image request (Vapor's art index,
-//! Steam's library cache, else the Steam CDN) and serves it, resized for grids.
+//! Steam's library cache, else the Steam CDN; registered Steam images for the game page) and
+//! serves it, resized for grids.
 
 use tauri::http::{Request, Response};
 use tauri::{AppHandle, Manager};
 
 use crate::images::{self, ImageRequest};
 use crate::library::service::LibraryService;
+use crate::remote_images::RemoteImages;
 use crate::web::{HttpClient, cdn};
 
 pub async fn handle(app: AppHandle, request: Request<Vec<u8>>) -> Response<Vec<u8>> {
     let Some(image) = images::parse_path(request.uri().path()) else {
         return images::bad_request();
     };
-    let kind = image.kind();
+    let width = image.thumbnail_width();
 
     // File system work goes to the blocking pool.
     let local = {
         let app = app.clone();
+        let image = image.clone();
         tauri::async_runtime::spawn_blocking(move || {
             app.state::<LibraryService>().image_source(&image)
         })
@@ -40,13 +43,21 @@ pub async fn handle(app: AppHandle, request: Request<Vec<u8>>) -> Response<Vec<u
             }
         }
         (None, ImageRequest::Avatar) => None,
+        (None, ImageRequest::Remote(key, _)) => {
+            let client = app.state::<HttpClient>().0.clone();
+            app.state::<RemoteImages>()
+                .fetch(&client, &key)
+                .await
+                .ok()
+                .flatten()
+        }
     };
 
     let Some(source) = source else {
         return images::not_found();
     };
     let thumbnail_dir = app.state::<LibraryService>().thumbnail_dir();
-    tauri::async_runtime::spawn_blocking(move || images::serve(&source, kind, &thumbnail_dir))
+    tauri::async_runtime::spawn_blocking(move || images::serve(&source, width, &thumbnail_dir))
         .await
         .unwrap_or_else(|_| images::not_found())
 }

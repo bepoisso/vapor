@@ -1,6 +1,7 @@
 import { TopBar } from "@/components/TopBar/TopBar";
-import { ShelfEditor } from "@/features/library/components/ShelfEditor";
+import { Toast } from "@/components/Toast/Toast";
 import { TagEditor } from "@/features/library/components/TagEditor";
+import { SaveShelfDialog } from "@/features/shelves/components/SaveShelfDialog";
 import styles from "./AppShell.module.css";
 import { Router } from "./router";
 
@@ -10,7 +11,8 @@ export function AppShell() {
       <TopBar />
       <Router />
       <TagEditor />
-      <ShelfEditor />
+      <SaveShelfDialog />
+      <Toast />
     </div>
   );
 }

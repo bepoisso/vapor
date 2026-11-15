@@ -4,9 +4,9 @@
 Vapor: an open-source desktop client for Steam (library browsing + game launching). Start with the **Library page**. The full context lives in `docs/` — read `docs/CONTEXT.md` before writing code.
 
 ## Source of truth
-- **Visual target:** `mockups/library.html`. Match its layout, spacing, colors, type and hover behavior. When the mockup and the docs disagree, the mockup wins on visuals and `docs/LIBRARY_SPEC.md` wins on behavior.
+- **Visual targets:** `mockups/library.html` (Library) and `mockups/game.html` (Game page). Match layout, spacing, colors, type and hover behavior. When a mockup and the docs disagree, the mockup wins on visuals and the spec (`docs/LIBRARY_SPEC.md`, `docs/GAME_PAGE_SPEC.md`) wins on behavior.
 - **Tokens:** `docs/DESIGN_SYSTEM.md`. Never hard-code a color, radius or font size in a component; use the tokens.
-- **Data model:** `mockups/data/games.sample.json` shows the shape the UI consumes. The real data layer must produce the same shape (see `docs/STEAM_INTEGRATION.md`).
+- **Data model:** `mockups/data/games.sample.json` (library) and `mockups/data/game.celeste.sample.json` (game page) show the shapes the UI consumes. The real data layer must produce the same shape (see `docs/STEAM_INTEGRATION.md`).
 
 ## Stack (confirmed by the owner, see `docs/DECISIONS.md`)
 - **Tauri 2** (Rust backend) + **React 19** (with React Compiler) + **TypeScript** (strict) + **Vite**. Package manager: **pnpm**.

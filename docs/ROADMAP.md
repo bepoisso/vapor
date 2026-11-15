@@ -44,6 +44,11 @@ Performance budgets (see `CLAUDE.md`) are checked at the end of every phase, not
 - Rule builder modal, "Save as shelf" from facets, reorder/rename/delete, import Steam collections read-only.
 - Delivered: shelves.json persistence, rule builder dialog (all/any, multi-value rows, live preview), shelf menu (edit, move up/down, delete), Save as shelf, Steam collections as read-only rows.
 
+## Phase 5 v2 — Smart shelves redesign (in review)
+- Spec: `docs/SMART_SHELVES_SPEC.md`; mockups `shelf.html`, `shelf-builder.html`, `shelves-manage.html`, `shelf-save-dialog.html`.
+- 5a engine and storage (new rule shape, `almostMatches`, `ruleLabel`, `ruleSentence`, `facetsToRule`, shelves.json v2 with migration) · 5b shelf page · 5c builder and Save as shelf dialog · 5d My shelves (reorder, visibility, pin, rename/duplicate/delete, Steam import).
+- **Done when:** a shelf created from facets appears in the library at the chosen place, its page lists the right games, reordering/hiding in My shelves is reflected on the library, and the engine tests pass.
+
 ## Phase 6 — Performance & polish (in review)
 - Profile with a synthetic library of 3,000 games; enforce the budgets in CI where measurable.
 - Empty and error states, offline mode.
@@ -52,11 +57,17 @@ Performance budgets (see `CLAUDE.md`) are checked at the end of every phase, not
 - **Done when:** every budget in `CLAUDE.md` is met on the owner's machine.
 - Delivered: startup bundle 473 → 339 KB (i18next and TanStack Router replaced), CI bundle budget, memoized grid cards, smaller grid thumbnails, typed errors with "Steam not found" and empty states, `pnpm perf:memory`. Measurements and the open RAM decision are in DECISIONS.md.
 
-## Phase 7 — Distribution
+## Phase 7 — Game page (in review)
+- Route `/game/:appId`, built from `mockups/game.html` per `docs/GAME_PAGE_SPEC.md`: hero with Play states, favorite, settings menu, stat cards, tabs, Overview (activity, news, achievements card, tags editor with "Appears in", More like this), My notes.
+- Real data from the start (Phases 2–4 are done): achievements, news, friends; `game.celeste.sample.json` feeds `VAPOR_LIBRARY=sample`.
+- **Done when:** clicking any card opens its page instantly from cache; tag edits update the library shelves/facets; Achievements/News tabs show real data; Back restores the library state.
+- Delivered: `get_game`, `get_game_achievements`, `get_game_news`, `get_game_social` (+ `SocialUpdated`), favorites/hidden/notes store, BBCode/HTML news parser, `vapor` proxy for Steam images, Stop and Steam settings actions, Hidden games in Settings, `pnpm compare:mockup` covers the game page. Decisions in DECISIONS.md.
+
+## Phase 8 — Distribution
 - NSIS/MSI installers via `tauri-action`, GitHub Releases, signed auto-update (`tauri-plugin-updater`).
 - End-user README (including the honest limitation: Steam must run in the background).
 - Optional: Windows code signing (otherwise SmartScreen warns on first launch).
 - **Done when:** a user can download, install and update Vapor from GitHub Releases.
 
 ## Later
-Game page (to be designed next), Store & Community webviews, profile, command palette, Linux/macOS builds.
+Store & Community webviews (also used by the Guides/Discussions tabs), profile, command palette, Linux/macOS builds.

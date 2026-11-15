@@ -1,27 +1,23 @@
 import { create } from "zustand";
 import { EMPTY_SELECTION, type FacetKey, type FacetSelection } from "../logic/facets";
 import type { SortKey } from "../logic/sorting";
-import { DEFAULT_MOOD_ID, type MoodId } from "../moods";
+import { DEFAULT_MOOD_ID } from "../moods";
 
 interface FiltersState {
-  /** Name filter from the top bar search, applied on top of the facets. */
-  query: string;
   selection: FacetSelection;
   sort: SortKey;
-  moodId: MoodId;
-  setQuery: (query: string) => void;
+  /** A default mood id, or `shelf:<id>` for a shelf shown as a mood. */
+  moodId: string;
   toggleFacetValue: (key: FacetKey, value: string) => void;
   clearSelection: () => void;
   setSort: (sort: SortKey) => void;
-  setMood: (moodId: MoodId) => void;
+  setMood: (moodId: string) => void;
 }
 
 export const useFiltersStore = create<FiltersState>()((set) => ({
-  query: "",
   selection: EMPTY_SELECTION,
   sort: "name",
   moodId: DEFAULT_MOOD_ID,
-  setQuery: (query) => set({ query }),
   toggleFacetValue: (key, value) =>
     set(({ selection }) => {
       const current = selection[key];

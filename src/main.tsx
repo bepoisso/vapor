@@ -8,6 +8,7 @@ import "./styles/global.css";
 import { App } from "./app/App";
 import { listenForLibraryUpdates, useLibraryStore } from "./features/library/store/libraryStore";
 import { listenForRunningGame } from "./features/library/store/sessionStore";
+import { listenForGameUpdates } from "./features/game/store/gameStore";
 import geistLatin from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url";
 
 markModulesEvaluated();
@@ -26,6 +27,9 @@ document.head.append(preload);
 void useLibraryStore.getState().load();
 listenForLibraryUpdates();
 listenForRunningGame();
+listenForGameUpdates();
+// Pages restore their own scroll offset once rendered (see useScrollMemory).
+window.history.scrollRestoration = "manual";
 
 const container = document.getElementById("root");
 if (!container) throw new Error("#root is missing from index.html");

@@ -1,0 +1,365 @@
+/* S2 · shelf builder (mockups/shelf-builder.html). The page has its own header (no top bar). */
+
+.page {
+  min-height: 100vh;
+}
+
+.head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px var(--topbar-x);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.cancel {
+  height: 40px;
+  padding: 0 14px 0 10px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface-quiet);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.cancel:hover {
+  background: var(--ghost-hover);
+}
+
+.cancel[data-confirm="true"] {
+  color: var(--accent);
+}
+
+.headTitle {
+  margin: 0;
+  font-size: var(--fs-16);
+  font-weight: 700;
+}
+
+.headActions {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 540px minmax(0, 1fr);
+  min-height: calc(100vh - var(--topbar-height) - 1px);
+}
+
+.side {
+  border-right: 1px solid var(--border);
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eyebrow {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.name {
+  height: 48px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-hover);
+  font-size: var(--fs-18);
+  font-weight: 600;
+  outline: none;
+}
+
+.name:focus {
+  border-color: var(--accent);
+}
+
+.warning,
+.notFound {
+  margin: 0;
+  font-size: var(--fs-12);
+  color: var(--accent);
+}
+
+.notFound {
+  padding: calc(var(--topbar-height) + var(--section-gap)) var(--page-x) 0;
+  font-size: var(--fs-14);
+  color: var(--text-muted);
+}
+
+.segmented {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  background: var(--surface-quiet);
+}
+
+.segmented button {
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-2);
+  font-weight: 600;
+  font-size: var(--fs-13);
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.blockWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.joiner {
+  align-self: center;
+  font-size: var(--fs-11);
+  font-weight: 700;
+  letter-spacing: var(--tracking-kicker);
+  color: var(--accent);
+}
+
+.block {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.blockHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.blockField {
+  font-weight: 700;
+}
+
+.blockHint,
+.unit,
+.hint {
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+}
+
+.remove {
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-avatar);
+  background: var(--surface-3);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove:hover {
+  background: var(--border-strong);
+  color: var(--text-hover);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  height: 30px;
+  padding: 0 11px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text-on-image);
+  font-size: var(--fs-12);
+  font-weight: 500;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.chip:hover {
+  border-color: var(--accent);
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.select,
+.number {
+  height: 34px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: var(--fs-13);
+}
+
+.number {
+  width: 84px;
+}
+
+.addRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.add {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-dense);
+  border: 1px dashed var(--border-dashed);
+  background: none;
+  color: var(--text-2);
+  font-size: var(--fs-13);
+  font-weight: 600;
+}
+
+.add:hover {
+  border-color: var(--accent);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+/* Live preview */
+.main {
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.previewHead {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.previewTitle {
+  margin: 0;
+  font-size: var(--fs-22);
+  font-weight: 700;
+}
+
+.count {
+  font-size: var(--fs-28);
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.mutedText {
+  color: var(--text-muted);
+}
+
+.sentence {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: var(--fs-13);
+  color: var(--text-2);
+}
+
+.empty {
+  padding: 40px;
+  border-radius: var(--radius-wide);
+  border: 1px dashed var(--border-strong);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 20px 16px;
+}
+
+.cover {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.art {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+
+.coverTitle {
+  font-weight: 600;
+  font-size: var(--fs-13);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.why {
+  font-size: var(--fs-11);
+  color: var(--text-muted);
+}

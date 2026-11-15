@@ -14,6 +14,8 @@ use crate::model::AppId;
 const PREFIX: &str = "user-collections.";
 /// Steam's collection of games the user hid from the library.
 const HIDDEN_ID: &str = "hidden";
+/// Steam's Favorites collection.
+pub const FAVORITES_ID: &str = "favorite";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
@@ -73,8 +75,8 @@ pub fn parse(text: &str) -> Vec<SteamCollection> {
         .collect();
     // Favorites first, then by name.
     collections.sort_by(|a, b| {
-        (b.id == "favorite")
-            .cmp(&(a.id == "favorite"))
+        (b.id == FAVORITES_ID)
+            .cmp(&(a.id == FAVORITES_ID))
             .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
     });
     collections

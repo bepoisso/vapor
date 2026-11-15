@@ -1,0 +1,17 @@
+{
+  "_note": "Default shelves seeded on first run + examples of every kind. Rule shape: docs/SMART_SHELVES_SPEC.md §0. Game data: mockups/data/games.sample.json.",
+  "shelves": [
+    { "id": "hard-indies", "name": "Demanding indies", "kind": "smart", "visible": true,  "pinned": true,  "order": 0,
+      "rule": { "match": "all", "conditions": [ { "field": "tags", "values": ["Indie"] }, { "field": "tags", "values": ["Hard"] } ] } },
+    { "id": "big-stories", "name": "Big stories",      "kind": "smart", "visible": true,  "pinned": false, "order": 1,
+      "rule": { "match": "all", "conditions": [ { "field": "tags", "values": ["Story"] } ] } },
+    { "id": "online",      "name": "Online",           "kind": "smart", "visible": true,  "pinned": false, "order": 2,
+      "rule": { "match": "all", "conditions": [ { "field": "modes", "values": ["PvP"] } ] } },
+    { "id": "friends",     "name": "Friends night",    "kind": "smart", "visible": false, "pinned": false, "order": 3, "showAsMood": true,
+      "rule": { "match": "all", "conditions": [ { "field": "modes", "values": ["Coop", "PvP"] } ] } },
+    { "id": "favorites",   "name": "Favorites",        "kind": "manual", "visible": true, "pinned": false, "order": 4,
+      "appIds": [504230, 1145360, 367520] },
+    { "id": "steam-col",   "name": "[Your Steam collection]", "kind": "steam", "visible": false, "pinned": false, "order": 5,
+      "steamCollectionId": null }
+  ]
+}

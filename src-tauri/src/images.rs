@@ -1,6 +1,7 @@
 //! Game art served to the webview through the `vapor` URI scheme, so the frontend never sees
-//! file paths. URL shape: `vapor://localhost/img/<appid>/<kind>` and `vapor://localhost/avatar`,
-//! which WebView2 on Windows exposes as `http://vapor.localhost/...`.
+//! file paths. URL shape: `vapor://localhost/img/<appid>/<kind>`, `vapor://localhost/avatar` and
+//! `vapor://localhost/remote/<key>[/thumb]` (see `remote_images`), which WebView2 on Windows
+//! exposes as `http://vapor.localhost/...`.
 //!
 //! Grids get resized thumbnails (decoding hundreds of full-size covers costs time and memory);
 //! the hero gets the original banner. Thumbnails are generated on first request and cached.
@@ -15,6 +16,7 @@ use tauri::http::{HeaderValue, Response, StatusCode, header};
 
 use crate::error::Error;
 use crate::model::{AppId, GameImages};
+use crate::remote_images::RemoteSize;
 use crate::steam::artwork::ArtPaths;
 
 pub const SCHEME: &str = "vapor";
@@ -86,6 +88,13 @@ pub fn avatar_url() -> String {
     format!("{BASE_URL}/avatar")
 }
 
+pub fn remote_url(key: &str, size: RemoteSize) -> String {
+    match size {
+        RemoteSize::Original => format!("{BASE_URL}/remote/{key}"),
+        RemoteSize::Thumb => format!("{BASE_URL}/remote/{key}/thumb"),
+    }
+}
+
 /// URLs for the art that exists. `logo_usable` is false for logos too dark to read.
 pub fn game_images(app_id: AppId, art: &ArtPaths, logo_usable: bool) -> GameImages {
     let url = |kind: ImageKind| kind.source(art).map(|_| image_url(app_id, kind));
@@ -115,20 +124,27 @@ pub fn remote_game_images(app_id: AppId) -> GameImages {
 }
 
 /// What a `vapor://` request asks for.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ImageRequest {
     Art(AppId, ImageKind),
     Avatar,
+    /// A registered Steam image, by key (see `remote_images`).
+    Remote(String, RemoteSize),
 }
 
 impl ImageRequest {
-    /// The avatar is served as is, like originals.
-    pub fn kind(&self) -> ImageKind {
+    /// Width of the thumbnail to serve, or `None` for the original file.
+    pub fn thumbnail_width(&self) -> Option<u32> {
         match self {
-            Self::Art(_, kind) => *kind,
-            Self::Avatar => ImageKind::Logo,
+            Self::Art(_, kind) => kind.thumbnail_width(),
+            Self::Avatar => None,
+            Self::Remote(_, size) => size.thumbnail_width(),
         }
     }
+}
+
+fn is_key(value: &str) -> bool {
+    value.len() == 16 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
 pub fn parse_path(path: &str) -> Option<ImageRequest> {
@@ -139,6 +155,14 @@ pub fn parse_path(path: &str) -> Option<ImageRequest> {
             app_id.parse().ok()?,
             ImageKind::parse(kind)?,
         )),
+        (Some("remote"), Some(key), size, None) if is_key(key) => {
+            let size = match size {
+                None => RemoteSize::Original,
+                Some("thumb") => RemoteSize::Thumb,
+                Some(_) => return None,
+            };
+            Some(ImageRequest::Remote(key.to_owned(), size))
+        }
         _ => None,
     }
 }
@@ -146,6 +170,8 @@ pub fn parse_path(path: &str) -> Option<ImageRequest> {
 fn content_type(path: &Path) -> &'static str {
     match path.extension().and_then(|ext| ext.to_str()) {
         Some(ext) if ext.eq_ignore_ascii_case("png") => "image/png",
+        Some(ext) if ext.eq_ignore_ascii_case("gif") => "image/gif",
+        Some(ext) if ext.eq_ignore_ascii_case("webp") => "image/webp",
         _ => "image/jpeg",
     }
 }
@@ -170,9 +196,9 @@ fn response(
     response
 }
 
-/// Serves `source` as is, or a cached thumbnail of it.
-pub fn serve(source: &Path, kind: ImageKind, thumbnail_dir: &Path) -> Response<Vec<u8>> {
-    let file = match kind.thumbnail_width() {
+/// Serves `source` as is, or a cached thumbnail of it `width` px wide.
+pub fn serve(source: &Path, width: Option<u32>, thumbnail_dir: &Path) -> Response<Vec<u8>> {
+    let file = match width {
         Some(width) => {
             thumbnail(source, width, thumbnail_dir).unwrap_or_else(|_| source.to_owned())
         }
@@ -293,6 +319,13 @@ mod tests {
             Some(ImageRequest::Art(730, ImageKind::HeroSmall))
         );
         assert_eq!(parse_path("/avatar"), Some(ImageRequest::Avatar));
+        assert_eq!(
+            parse_path("/remote/00ff00ff00ff00ff/thumb"),
+            Some(ImageRequest::Remote(
+                "00ff00ff00ff00ff".into(),
+                RemoteSize::Thumb
+            ))
+        );
     }
 
     #[test]
@@ -305,6 +338,9 @@ mod tests {
             "/img/1/cover/x",
             "/other/1/cover",
             "/avatar/x",
+            "/remote/../../x",
+            "/remote/00ff00ff00ff00ff/huge",
+            "/remote/00ff",
         ] {
             assert_eq!(parse_path(path), None, "{path}");
         }

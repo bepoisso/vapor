@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vapor — Manage shelves (reference mockup)</title>
+<!-- REFERENCE MOCKUP (S3). Interactive: reorder (▲▼), show/hide switch, filter tabs; the library outline on the right follows. -->
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shelves-common.css">
+<style>
+  .intro{padding:12px var(--page-x) 0;display:flex;align-items:flex-end;gap:16px}
+  h1{margin:0;font-size:36px;font-weight:800;letter-spacing:-.03em}
+  .tabs{display:flex;gap:22px;margin:24px var(--page-x) 0;border-bottom:1px solid var(--border)}
+  .tabs button{border:0;background:none;color:var(--text-muted);font-weight:500;font-size:14px;padding:0 0 12px}
+  .tabs button:hover{color:#fff}
+  .tabs button[aria-selected="true"]{color:#fff;box-shadow:inset 0 -2px 0 var(--accent)}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;padding:20px var(--page-x) 48px}
+  .list{display:flex;flex-direction:column;gap:10px}
+  .row{display:flex;align-items:center;gap:18px;padding:14px 16px;border-radius:var(--radius-xl);background:var(--surface);border:1px solid var(--border);transition:border-color .15s,opacity .15s}
+  .row:hover{border-color:#2E2E38}
+  .row[data-off="true"]{opacity:.55}
+  .order{display:flex;flex-direction:column;gap:2px}
+  .order button{width:28px;height:22px;border-radius:6px;border:0;background:#1A1A21;color:var(--text-muted);font-size:10px}
+  .order button:hover:not(:disabled){background:var(--border-strong);color:#fff}
+  .order button:disabled{opacity:.3;cursor:default}
+  .stack{position:relative;width:56px;height:80px;flex:0 0 56px;margin:0 8px}
+  .stack img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:7px;transition:transform .25s var(--ease-out)}
+  .stack .c1{transform:rotate(-7deg)} .stack .c3{transform:rotate(7deg)} .stack .c2{box-shadow:0 6px 14px rgba(0,0,0,.5)}
+  .row:hover .c1{transform:rotate(-12deg) translateX(-8px)} .row:hover .c3{transform:rotate(12deg) translateX(8px)}
+  .info{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+  .name{font-weight:700;font-size:16px}
+  .kind{font-size:11px;font-weight:600;letter-spacing:.06em;border-radius:6px;padding:3px 7px}
+  .kind--smart{color:var(--accent);background:var(--accent-soft)} .kind--manual{color:var(--text-2);background:var(--surface-3)} .kind--steam{color:var(--steam-blue);background:rgba(102,153,255,.14)}
+  .ib{width:36px;height:36px;border-radius:10px;border:0;background:#1A1A21;color:var(--text-2);display:flex;align-items:center;justify-content:center}
+  .ib:hover{background:var(--border-strong);color:#fff}
+  .outline{padding:18px;display:flex;flex-direction:column;gap:10px;border-radius:20px;position:sticky;top:20px}
+  .blk{height:30px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;padding:0 10px;font-size:11px;color:var(--text-muted)}
+  .blk--hero{height:70px;align-items:flex-end;padding:8px 10px;background:var(--surface-3)}
+  .blk--shelf{height:34px;background:var(--accent-soft);border:1px solid rgba(255,212,59,.35);color:var(--text);font-size:12px;font-weight:600;gap:8px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="library.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Library</a>
+  <a class="profile" href="#">Flitcher<span class="avatar"></span></a>
+</div>
+<section class="intro">
+  <div style="display:flex;flex-direction:column;gap:6px"><h1>My shelves</h1><span class="muted">Choose which shelves appear in the library, and in what order.</span></div>
+  <span style="margin-left:auto;display:flex;gap:10px">
+    <button class="btn btn--quiet">Import my Steam collections</button>
+    <a class="btn btn--primary" href="shelf-builder.html">+ New shelf</a>
+  </span>
+</section>
+<nav class="tabs" role="tablist">
+  <button role="tab" data-filter="all" aria-selected="true">All</button>
+  <button role="tab" data-filter="smart" aria-selected="false">Smart</button>
+  <button role="tab" data-filter="manual" aria-selected="false">Manual</button>
+  <button role="tab" data-filter="steam" aria-selected="false">From Steam</button>
+</nav>
+<div class="layout">
+  <div class="list" id="list"></div>
+  <aside class="panel outline" aria-label="Library outline">
+    <span class="eyebrow">Library preview</span>
+    <div class="blk blk--hero">Hero · Continue</div>
+    <div class="blk">Recently played</div>
+    <div class="blk">In the mood for…</div>
+    <div id="outline" style="display:flex;flex-direction:column;gap:10px"></div>
+    <div class="blk">Library + filters</div>
+  </aside>
+</div>
+<script src="shelves-common.js"></script>
+<script>
+const state = { shelves: structuredClone(SHELVES), filter: "all" };
+const KIND = { smart: "Smart", manual: "Manual", steam: "From Steam" };
+const countOf = s => s.kind === "smart" ? GAMES.filter(g => matches(g, s.rule)).length : (s.count ?? "[N]");
+const coversOf = s => s.kind === "smart" ? GAMES.filter(g => matches(g, s.rule)).slice(0, 3).map(g => g.appId) : s.covers;
+function render() {
+  document.querySelectorAll("[data-filter]").forEach(b => b.setAttribute("aria-selected", b.dataset.filter === state.filter));
+  const n = state.shelves.length;
+  document.getElementById("list").innerHTML = state.shelves.map((s, i) => {
+    if (state.filter !== "all" && s.kind !== state.filter) return "";
+    const c = coversOf(s); while (c.length < 3) c.push(c[0]);
+    const sub = s.kind === "smart" ? `${SPARKLE}${esc(ruleLabel(s.rule))} · ${countOf(s)} games` : s.kind === "manual" ? `Added by hand · ${countOf(s)} games` : `Steam collection (read-only) · ${countOf(s)} games`;
+    return `<div class="row" data-off="${!s.visible}">
+      <span class="order"><button data-move="${i}|-1" aria-label="Move ${esc(s.name)} up" ${i === 0 ? "disabled" : ""}>▲</button><button data-move="${i}|1" aria-label="Move ${esc(s.name)} down" ${i === n - 1 ? "disabled" : ""}>▼</button></span>
+      <span class="stack"><img class="c1" src="${cover(c[1])}" alt=""><img class="c3" src="${cover(c[2])}" alt=""><img class="c2" src="${cover(c[0])}" alt=""></span>
+      <span class="info"><span style="display:flex;align-items:center;gap:10px"><span class="name">${esc(s.name)}</span><span class="kind kind--${s.kind}">${KIND[s.kind]}</span>${s.pinned ? '<span class="muted" style="font-size:12px">Pinned</span>' : ""}</span>
+        <span class="muted" style="font-size:12px;display:flex;align-items:center;gap:6px">${sub}</span></span>
+      <button class="switch" role="switch" data-vis="${i}" aria-checked="${s.visible}" aria-label="Show ${esc(s.name)} in the library"></button>
+      <a class="ib" href="${s.kind === "smart" ? "shelf-builder.html" : "#"}" aria-label="Edit ${esc(s.name)}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></a>
+      <button class="ib" aria-label="More options for ${esc(s.name)}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+    </div>`;
+  }).join("");
+  document.getElementById("outline").innerHTML = state.shelves.filter(s => s.visible).map((s, i) => `<div class="blk blk--shelf"><span style="color:var(--accent)">${i + 1}</span>${esc(s.name)}</div>`).join("");
+}
+document.addEventListener("click", e => {
+  const f = e.target.closest("[data-filter]"); if (f) { state.filter = f.dataset.filter; render(); return; }
+  const m = e.target.closest("[data-move]");
+  if (m && !m.disabled) { const [i, d] = m.dataset.move.split("|").map(Number); const a = state.shelves; [a[i], a[i + d]] = [a[i + d], a[i]]; render(); return; }
+  const v = e.target.closest("[data-vis]"); if (v) { const s = state.shelves[+v.dataset.vis]; s.visible = !s.visible; render(); }
+});
+render();
+</script>
+</body>
+</html>

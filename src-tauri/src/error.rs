@@ -41,6 +41,12 @@ pub enum Error {
 
     #[error("{0} is not a Steam folder")]
     NotASteamFolder(PathBuf),
+
+    #[error("couldn't stop the game: {0}")]
+    Process(String),
+
+    #[error("game {0} is not in the library")]
+    UnknownGame(u32),
 }
 
 /// What kind of failure, so the UI can offer the right way out (e.g. "Open Settings").

@@ -1,5 +1,5 @@
 /**
- * Visual check of the Library page against the reference mockup (Phase 1 acceptance).
+ * Visual check of the Library and Game pages against the reference mockups.
  *
  * Screenshots the real app, then the mockup in the same engine and viewport, and writes
  * side-by-side and diff images to `artifacts/compare/` (git-ignored). Windows only (WebView2).
@@ -13,6 +13,7 @@ import { PNG } from "pngjs";
 import { DEV_URL, withApp } from "./lib/app.ts";
 
 const MOCKUP_URL = `${DEV_URL}mockups/library.html`;
+const GAME_MOCKUP_URL = `${DEV_URL}mockups/game.html`;
 const OUT_DIR = "artifacts/compare";
 
 async function screenshot(page: Page, file: string): Promise<PNG> {
@@ -49,36 +50,58 @@ function sideBySide(left: PNG, right: PNG): PNG {
   return out;
 }
 
+/** Screenshots the app page and the mockup, then writes diff and side-by-side images. */
+async function compare(
+  page: Page,
+  name: string,
+  mockupUrl: string,
+  mockupReady: string,
+): Promise<void> {
+  const prefix = name === "library" ? "" : `${name}-`;
+  const appShot = await screenshot(page, `${prefix}app.png`);
+  const appUrl = page.url();
+
+  await page.goto(mockupUrl);
+  await page.waitForSelector(mockupReady);
+  const mockShot = await screenshot(page, `${prefix}mockup.png`);
+  await page.goto(appUrl);
+
+  const width = Math.min(appShot.width, mockShot.width);
+  const height = Math.min(appShot.height, mockShot.height);
+  const diff = new PNG({ width, height });
+  const changed = pixelmatch(
+    crop(appShot, width, height).data,
+    crop(mockShot, width, height).data,
+    diff.data,
+    width,
+    height,
+    { threshold: 0.15 },
+  );
+  writeFileSync(`${OUT_DIR}/${prefix}diff.png`, PNG.sync.write(diff));
+  writeFileSync(
+    `${OUT_DIR}/${prefix}side-by-side.png`,
+    PNG.sync.write(sideBySide(appShot, mockShot)),
+  );
+  console.log(
+    `${name}: app ${appShot.width}x${appShot.height}, mockup ${mockShot.width}x${mockShot.height}, ` +
+      `pixels differing: ${((changed / (width * height)) * 100).toFixed(2)}%`,
+  );
+}
+
 await withApp(
   async (page) => {
     mkdirSync(OUT_DIR, { recursive: true });
     const viewport = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }));
-    const appShot = await screenshot(page, "app.png");
-
-    await page.goto(MOCKUP_URL);
-    await page.waitForSelector("#library .cover");
-    const mockShot = await screenshot(page, "mockup.png");
-    await page.goto(DEV_URL);
-
-    const width = Math.min(appShot.width, mockShot.width);
-    const height = Math.min(appShot.height, mockShot.height);
-    const diff = new PNG({ width, height });
-    const changed = pixelmatch(
-      crop(appShot, width, height).data,
-      crop(mockShot, width, height).data,
-      diff.data,
-      width,
-      height,
-      { threshold: 0.15 },
-    );
-    writeFileSync(`${OUT_DIR}/diff.png`, PNG.sync.write(diff));
-    writeFileSync(`${OUT_DIR}/side-by-side.png`, PNG.sync.write(sideBySide(appShot, mockShot)));
-
     console.log(`viewport ${viewport.width}x${viewport.height}`);
-    console.log(
-      `app ${appShot.width}x${appShot.height}, mockup ${mockShot.width}x${mockShot.height}`,
-    );
-    console.log(`pixels differing: ${((changed / (width * height)) * 100).toFixed(2)}%`);
+
+    await compare(page, "library", MOCKUP_URL, "#library .cover");
+
+    // The game page of the mockup is Celeste.
+    await page.evaluate(() => {
+      window.location.hash = "#/game/504230";
+    });
+    await page.waitForSelector("text=More like this");
+    await compare(page, "game", GAME_MOCKUP_URL, "#similar .cover");
     console.log(`images in ${OUT_DIR}/`);
   },
   { sample: true },

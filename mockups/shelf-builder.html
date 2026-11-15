@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vapor — Shelf builder (reference mockup)</title>
+<!-- REFERENCE MOCKUP (S2). Full-page rule builder: "+ New shelf", "Edit rule", "Edit in detail →". Interactive: match mode, condition values, add/remove conditions, live preview. -->
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shelves-common.css">
+<style>
+  .head{display:flex;align-items:center;gap:12px;padding:18px 32px;border-bottom:1px solid var(--border)}
+  .layout{display:grid;grid-template-columns:540px minmax(0,1fr);min-height:calc(100vh - 77px)}
+  .side{border-right:1px solid var(--border);padding:24px 28px;display:flex;flex-direction:column;gap:22px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .name{height:48px;padding:0 14px;border-radius:var(--radius-md);border:1px solid var(--border-strong);background:var(--surface);color:#fff;font:600 18px Geist;outline:none}
+  .name:focus{border-color:var(--accent)}
+  .seg{display:inline-flex;padding:4px;border-radius:var(--radius-md);background:#15151B;align-self:flex-start}
+  .seg button{height:34px;padding:0 14px;border-radius:var(--radius-sm);border:0;background:none;color:var(--text-2);font-weight:600;font-size:13px}
+  .seg button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+  .cblock{padding:12px 14px;display:flex;flex-direction:column;gap:10px;border-radius:var(--radius-lg)}
+  .cblock__head{display:flex;align-items:center;gap:8px}
+  .x{margin-left:auto;width:28px;height:28px;border-radius:8px;border:0;background:var(--surface-3);color:var(--text-muted)}
+  .x:hover{background:var(--border-strong);color:#fff}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .add{height:36px;padding:0 14px;border-radius:10px;border:1px dashed #3A3A46;background:none;color:var(--text-2);font-weight:600;font-size:13px}
+  .add:hover:not(:disabled){border-color:var(--accent)}
+  .add:disabled{color:#55555F;border-color:var(--border-strong);cursor:default}
+  .check{display:flex;align-items:center;gap:10px}
+  .check input{accent-color:var(--accent);width:18px;height:18px}
+  .main{padding:24px 32px;display:flex;flex-direction:column;gap:16px}
+  .grid-6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:20px 16px}
+  .grid-6 img{border-radius:12px}
+</style>
+</head>
+<body>
+<header class="head">
+  <a class="back" href="shelves-manage.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Cancel</a>
+  <span style="font-weight:700;font-size:16px">New smart shelf</span>
+  <span style="margin-left:auto;display:flex;gap:10px">
+    <button class="btn btn--quiet">Save as mood</button>
+    <button class="btn btn--primary">Create shelf</button>
+  </span>
+</header>
+<div class="layout">
+  <aside class="side">
+    <label class="field"><span class="eyebrow">Name</span><input class="name" value="Friends night"></label>
+    <div class="field"><span class="eyebrow">Match</span>
+      <div class="seg" role="group" aria-label="Match mode"><button data-match="all">All conditions (AND)</button><button data-match="any">Any condition (OR)</button></div>
+    </div>
+    <div class="field"><span class="eyebrow">Conditions</span>
+      <div id="conds" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="addable"></div>
+    </div>
+    <div class="field"><span class="eyebrow">Display</span>
+      <label class="check"><input type="checkbox" checked>Show in the library</label>
+      <label class="check"><input type="checkbox">Pin at the top of the shelves</label>
+      <label class="check"><input type="checkbox">Hide games that aren't installed</label>
+    </div>
+  </aside>
+  <main class="main">
+    <div style="display:flex;align-items:baseline;gap:12px"><h2 style="margin:0;font-size:22px;font-weight:700">Live preview</h2><span id="count" style="font-size:28px;font-weight:800;color:var(--accent)"></span><span class="muted">games match</span></div>
+    <div class="panel" id="sentence" style="padding:10px 14px;font-size:13px;color:var(--text-2);border-radius:var(--radius-md)"></div>
+    <div class="empty hidden" id="empty">No game yet. Widen a condition or switch to "Any condition".</div>
+    <div class="grid-6" id="grid"></div>
+  </main>
+</div>
+<script src="shelves-common.js"></script>
+<script>
+const rule = { match: "all", conditions: [{ field: "modes", values: ["Coop", "PvP"] }, { field: "tags", values: [] }] };
+function render() {
+  document.querySelectorAll("[data-match]").forEach(b => b.setAttribute("aria-pressed", b.dataset.match === rule.match));
+  const join = rule.match === "all" ? "AND" : "OR";
+  document.getElementById("conds").innerHTML = rule.conditions.map((c, i) => `
+    ${i ? `<span class="joiner" style="align-self:center;font-size:11px;letter-spacing:.1em">${join}</span>` : ""}
+    <div class="panel cblock">
+      <div class="cblock__head"><b>${FIELDS[c.field].label}</b><span class="muted" style="font-size:13px">is any of</span>
+        <button class="x" data-remove="${i}" aria-label="Remove ${FIELDS[c.field].label} condition">×</button></div>
+      <div class="chips">${FIELDS[c.field].values.map(v => `<button class="chip" data-toggle="${i}|${esc(v)}" aria-pressed="${c.values.includes(v)}">${esc(v)}</button>`).join("")}</div>
+    </div>`).join("");
+  const free = Object.entries(FIELDS).filter(([k, f]) => f.ready && !rule.conditions.some(c => c.field === k));
+  document.getElementById("addable").innerHTML = free.map(([k, f]) => `<button class="add" data-add="${k}">+ ${f.label}</button>`).join("") +
+    `<button class="add" disabled title="Needs Steam data (Phase 4)">+ ${Object.values(FIELDS).filter(f => !f.ready).map(f => f.label).join(" · ")}</button>`;
+  const list = GAMES.filter(g => matches(g, rule));
+  document.getElementById("count").textContent = list.length;
+  document.getElementById("sentence").textContent = ruleSentence(rule);
+  document.getElementById("empty").classList.toggle("hidden", list.length > 0);
+  const why = g => rule.conditions.filter(c => c.values.length).map(c => c.values.filter(v => FIELDS[c.field].get(g).includes(v)).join("/")).filter(Boolean).join(" · ");
+  document.getElementById("grid").innerHTML = list.map(g => `<a class="cover" href="game.html"><img src="${cover(g.appId)}" alt=""><span class="cover__t">${esc(g.name)}</span><span class="cover__s" style="font-size:11px">${esc(why(g))}</span></a>`).join("");
+}
+document.addEventListener("click", e => {
+  const m = e.target.closest("[data-match]"); if (m) { rule.match = m.dataset.match; render(); return; }
+  const t = e.target.closest("[data-toggle]");
+  if (t) { const [i, v] = t.dataset.toggle.split("|"); const c = rule.conditions[+i]; c.values = c.values.includes(v) ? c.values.filter(x => x !== v) : [...c.values, v]; render(); return; }
+  const r = e.target.closest("[data-remove]"); if (r) { rule.conditions.splice(+r.dataset.remove, 1); render(); return; }
+  const a = e.target.closest("[data-add]"); if (a) { rule.conditions.push({ field: a.dataset.add, values: [] }); render(); }
+});
+render();
+</script>
+</body>
+</html>

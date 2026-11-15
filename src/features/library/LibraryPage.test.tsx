@@ -1,8 +1,8 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "@/app/App";
-import type { Game, SmartShelf } from "@/lib/bindings";
-import { makeGame } from "./logic/testGames";
+import type { Game, Shelf } from "@/lib/bindings";
+import { makeGame, makeShelf } from "./logic/testGames";
 import { EMPTY_SELECTION } from "./logic/facets";
 import { useFiltersStore } from "./store/filtersStore";
 import { useLibraryStore } from "./store/libraryStore";
@@ -37,34 +37,17 @@ const games: Game[] = [
   makeGame({ appId: 730, name: "Counter-Strike 2", genre: "FPS", modes: ["PvP"], tags: [] }),
 ];
 
-const shelves: SmartShelf[] = [
-  {
-    id: "demanding-indies",
-    title: "Demanding indies",
-    order: 0,
-    pinned: false,
-    seeded: true,
-    rule: {
-      all: [
-        { field: "tags", op: "includes", value: "Indie" },
-        { field: "tags", op: "includes", value: "Hard" },
-      ],
-    },
-  },
-  {
-    id: "story",
-    title: "Big stories",
-    order: 1,
-    pinned: false,
-    seeded: true,
-    rule: { all: [{ field: "tags", op: "includes", value: "Story" }] },
-  },
+const shelves: Shelf[] = [
+  makeShelf({ id: "demanding-indies", name: "Demanding indies", order: 0 }, [
+    { field: "tags", values: ["Indie"] },
+    { field: "tags", values: ["Hard"] },
+  ]),
+  makeShelf({ id: "story", name: "Big stories", order: 1 }, [{ field: "tags", values: ["Story"] }]),
 ];
 
 function renderLibrary() {
   useLibraryStore.setState({ status: "ready", games, shelves, error: null });
   useFiltersStore.setState({
-    query: "",
     selection: EMPTY_SELECTION,
     sort: "name",
     moodId: "friends",
@@ -126,12 +109,36 @@ describe("LibraryPage", () => {
     expect(screen.queryByRole("button", { name: "Clear all" })).not.toBeInTheDocument();
   });
 
-  it("applies the top bar search on top of the facets", async () => {
+  it("searches in a box over the page and opens the picked game's page", async () => {
     const user = userEvent.setup();
     renderLibrary();
-    await user.type(await screen.findByRole("searchbox"), "cup");
-    expect(libraryCount()).toHaveTextContent("1 game");
-    expect(screen.getByRole("button", { name: "Simulation, 0 games" })).toBeDisabled();
+    const search = await screen.findByRole("combobox", { name: "Search your library" });
+    await user.type(search, "st");
+    const results = screen.getByRole("listbox", { name: "Games" });
+    // Starts with the query, then a word starting with it, then the rest.
+    expect(
+      within(results)
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["Stardew ValleySimulation", "Counter-Strike 2FPS", "CelestePlatformer"]);
+    // The grid is not filtered.
+    expect(libraryCount()).toHaveTextContent("4 games");
+
+    await user.keyboard("{ArrowDown}");
+    expect(within(results).getByRole("option", { name: /Counter-Strike 2/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await user.keyboard("{Enter}");
+    expect(window.location.hash).toBe("#/game/730");
+    expect(search).toHaveValue("");
+  });
+
+  it("says when nothing matches the search", async () => {
+    const user = userEvent.setup();
+    renderLibrary();
+    await user.type(await screen.findByRole("combobox"), "zelda");
+    expect(screen.getByText("No game matches “zelda”.")).toBeInTheDocument();
   });
 
   it("switches moods with aria-pressed pills", async () => {
@@ -166,7 +173,6 @@ describe("LibraryPage", () => {
       error: null,
     });
     useFiltersStore.setState({
-      query: "",
       selection: EMPTY_SELECTION,
       sort: "name",
       moodId: "friends",
@@ -184,25 +190,28 @@ describe("LibraryPage", () => {
     expect(screen.queryByRole("heading", { name: "Demanding indies" })).not.toBeInTheDocument();
   });
 
-  it("shows the user's empty shelves and the Steam collections", async () => {
+  it("shows visible shelves, pinned first: empty user shelves, Favorites, Steam collections", async () => {
     useLibraryStore.setState({
       status: "ready",
       games,
       shelves: [
-        {
-          id: "shelf-9",
-          title: "My backlog",
-          order: 0,
-          pinned: false,
-          seeded: false,
-          rule: { all: [{ field: "tags", op: "includes", value: "Backlog" }] },
-        },
+        makeShelf({ id: "shelf-9", name: "My backlog", seeded: false }, [
+          { field: "tags", values: ["Backlog"] },
+        ]),
+        makeShelf({ id: "hidden", name: "Hidden shelf", visible: false, seeded: false }),
+        makeShelf({ id: "favorites", name: "Favorites", kind: "manual", appIds: [504230, 999] }),
+        makeShelf({
+          id: "steam-uc-1",
+          name: "Couch games",
+          kind: "steam",
+          steamCollectionId: "uc-1",
+          appIds: [268910],
+          pinned: true,
+        }),
       ],
-      collections: [{ id: "favorite", name: "Favoris", appIds: [504230, 268910, 999] }],
       error: null,
     });
     useFiltersStore.setState({
-      query: "",
       selection: EMPTY_SELECTION,
       sort: "name",
       moodId: "friends",
@@ -212,8 +221,16 @@ describe("LibraryPage", () => {
 
     expect(await screen.findByRole("heading", { name: "My backlog" })).toBeInTheDocument();
     expect(screen.getByText("No game matches this rule yet.")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Favoris" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Hidden shelf" })).not.toBeInTheDocument();
+    const shelfTitles = within(screen.getByRole("region", { name: "Smart shelves" }))
+      .getAllByRole("heading", { level: 2 })
+      .map((heading) => heading.textContent);
+    expect(shelfTitles).toEqual(["Couch games", "My backlog", "Favorites"]);
     expect(screen.getByText("Steam collection")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Manage shelves" })).toHaveAttribute(
+      "href",
+      "#/shelves",
+    );
   });
 
   it("explains when Steam can't be found and points to Settings", async () => {
@@ -239,7 +256,6 @@ describe("LibraryPage", () => {
       status: "ready",
       games: [],
       shelves: [],
-      collections: [],
       error: null,
     });
     window.location.hash = "#/";

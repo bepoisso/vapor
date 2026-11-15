@@ -14,6 +14,9 @@ export type Path =
   | "/profile"
   | "/settings"
   | "/history"
+  | "/shelves"
+  | "/shelves/new"
+  | `/shelves/${string}/edit`
   | `/game/${number}`
   | `/shelf/${string}`;
 
@@ -34,6 +37,30 @@ export function usePath(): string {
 
 export function navigate(to: Path): void {
   window.location.hash = to;
+}
+
+/** The route shown before the current one (for "Back to the library"). */
+let previousPath: string | null = null;
+let lastPath = currentPath();
+window.addEventListener("hashchange", () => {
+  previousPath = lastPath;
+  lastPath = currentPath();
+});
+
+/** The route shown before the current one, if any. */
+export function previousRoute(): string | null {
+  return previousPath;
+}
+
+/** True when the previous history entry is the library, so Back can return to it. */
+export function cameFromLibrary(): boolean {
+  return previousPath === "/";
+}
+
+/** Back to the library: a real history step when we came from it, else a new entry. */
+export function goBackToLibrary(): void {
+  if (cameFromLibrary()) window.history.back();
+  else navigate("/");
 }
 
 export function href(to: Path): string {

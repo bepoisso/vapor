@@ -1,0 +1,57 @@
+/* Tokens: identical to library.html / game.html (docs/DESIGN_SYSTEM.md). */
+:root{
+  --bg:#0B0B0F; --surface:#121218; --surface-2:#18181F; --surface-3:#1E1E26;
+  --border:#1E1E26; --border-strong:#2A2A33;
+  --text:#F4F4F6; --text-2:#C9C9D1; --text-muted:#9B9BA6; --text-faint:#6E6E78;
+  --accent:#FFD43B; --accent-ink:#0B0B0F; --accent-soft:rgba(255,212,59,.12); --steam-blue:#8FB8FF;
+  --radius-sm:9px; --radius-md:12px; --radius-lg:14px; --radius-xl:18px; --radius-2xl:24px;
+  --page-x:48px; --ease-out:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 14px/1.4 Geist,system-ui,sans-serif}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+img{display:block}
+.hidden{display:none !important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.topbar{display:flex;align-items:center;gap:12px;padding:18px 32px}
+.back{height:40px;padding:0 14px 0 10px;border-radius:var(--radius-md);background:#15151B;display:flex;align-items:center;gap:6px;font-weight:600;border:0;color:var(--text)}
+.back:hover{background:rgba(255,255,255,.18)}
+.profile{margin-left:auto;height:40px;padding:0 6px 0 12px;border-radius:var(--radius-md);background:#15151B;display:flex;align-items:center;gap:10px;font-weight:600}
+.avatar{width:30px;height:30px;border-radius:8px;background:#6C4FD1}
+
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--text-muted);text-transform:uppercase}
+.muted{color:var(--text-muted)}
+.panel{border-radius:var(--radius-xl);background:var(--surface);border:1px solid var(--border)}
+
+.btn{height:42px;padding:0 16px;border-radius:var(--radius-md);border:0;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:8px}
+.btn--primary{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.btn--quiet{background:#15151B;color:var(--text-2)}
+.btn--quiet:hover{background:rgba(255,255,255,.18);color:#fff}
+.btn--ghost{background:rgba(255,255,255,.12);color:#fff}
+
+.chip{height:30px;padding:0 11px;border-radius:999px;border:1px solid var(--border-strong);background:var(--surface-2);color:#E6E6EA;font-weight:500;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip--dashed{border-style:dashed;border-color:#3A3A46;background:none;color:var(--text-2)}
+.chip:disabled{opacity:.4;cursor:default;border-color:var(--border-strong)}
+.cond{height:34px;padding:0 8px 0 12px;border-radius:10px;border:1px solid #33333D;background:var(--surface-2);color:#fff;font-size:13px;display:inline-flex;align-items:center;gap:8px}
+.cond:hover{border-color:var(--accent)}
+.cond__x{width:20px;height:20px;border-radius:6px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
+.joiner{font-size:12px;font-weight:700;color:var(--accent)}
+.rule-badge{font-size:12px;color:var(--text-muted);background:#17171E;border-radius:999px;padding:4px 10px;display:inline-flex;align-items:center;gap:6px}
+
+.cover{display:flex;flex-direction:column;gap:8px}
+.cover img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:var(--radius-lg);background:var(--surface-2);transition:transform .25s var(--ease-out),box-shadow .25s}
+.cover:hover img{transform:translateY(-6px);box-shadow:0 22px 40px rgba(0,0,0,.55)}
+.cover:hover .cover__t{color:var(--accent)}
+.cover__t{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cover__s{font-size:12px;color:var(--text-muted)}
+.empty{padding:40px;border-radius:16px;border:1px dashed var(--border-strong);text-align:center;color:var(--text-muted)}
+
+.switch{width:46px;height:26px;border-radius:999px;border:0;background:var(--border-strong);position:relative;flex:0 0 auto}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}
+.switch[aria-checked="true"]{background:var(--accent)}
+.switch[aria-checked="true"]::after{left:23px}
+@media (prefers-reduced-motion: reduce){ .cover img{transition:none} .cover:hover img{transform:none} }

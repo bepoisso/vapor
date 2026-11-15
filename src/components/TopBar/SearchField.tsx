@@ -1,34 +1,33 @@
 import { Search } from "lucide-react";
-import { type ChangeEvent, type KeyboardEvent, useEffect, useRef } from "react";
-import { navigate, usePath } from "@/app/navigation";
+import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { navigate } from "@/app/navigation";
 import { useTranslation } from "@/i18n";
-import { LIBRARY_SECTION_ID } from "@/features/library/components/LibrarySection";
-import { useFiltersStore } from "@/features/library/store/filtersStore";
+import { searchGames } from "@/features/library/logic/search";
 import { useLibraryStore } from "@/features/library/store/libraryStore";
+import { SearchResults } from "./SearchResults";
 import styles from "./TopBar.module.css";
 
-function scrollToLibrary() {
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  requestAnimationFrame(() => {
-    document
-      .getElementById(LIBRARY_SECTION_ID)
-      ?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-  });
-}
+const LISTBOX_ID = "search-results";
 
 /**
- * Library search: filters the Library grid by name, on top of the facets. Typing jumps to the
- * Library section (navigating home first if needed). `Ctrl K` focuses it, `Esc` clears it.
+ * Library search: matching games show in a box under the field, over the page; picking one opens
+ * its game page. `Ctrl K` focuses the field, arrows move through the results, `Enter` opens the
+ * highlighted game, `Esc` clears, then leaves.
  */
 export function SearchField() {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
-  const query = useFiltersStore((state) => state.query);
-  const setQuery = useFiltersStore((state) => state.setQuery);
+  const [query, setQuery] = useState("");
+  const [focused, setFocused] = useState(false);
+  const [active, setActive] = useState(0);
+  const games = useLibraryStore((state) => state.games);
   const gameCount = useLibraryStore((state) =>
     state.status === "ready" ? state.games.length : null,
   );
-  const pathname = usePath();
+
+  const results = searchGames(games, query);
+  const open = focused && query.trim() !== "";
+  const highlighted = Math.min(active, results.length - 1);
 
   useEffect(() => {
     function onKeyDown(event: globalThis.KeyboardEvent) {
@@ -42,49 +41,86 @@ export function SearchField() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  function onChange(event: ChangeEvent<HTMLInputElement>) {
-    const value = event.target.value;
-    const startedTyping = query.trim() === "" && value.trim() !== "";
-    setQuery(value);
-    if (pathname !== "/") {
-      navigate("/");
-      // The Library renders on the next frame; scroll once it is there.
-      requestAnimationFrame(scrollToLibrary);
-    } else if (startedTyping) {
-      scrollToLibrary();
-    }
+  function openGame(appId: number) {
+    setQuery("");
+    inputRef.current?.blur();
+    navigate(`/game/${appId}`);
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Escape") {
-      setQuery("");
-      event.currentTarget.blur();
+    switch (event.key) {
+      case "ArrowDown":
+      case "ArrowUp": {
+        if (results.length === 0) return;
+        event.preventDefault();
+        const step = event.key === "ArrowDown" ? 1 : -1;
+        setActive((highlighted + step + results.length) % results.length);
+        break;
+      }
+      case "Enter": {
+        const game = results[highlighted];
+        if (open && game) {
+          event.preventDefault();
+          openGame(game.appId);
+        }
+        break;
+      }
+      case "Escape":
+        // Handled here: the game page's Escape (back to the library) must not fire too.
+        event.preventDefault();
+        if (query) setQuery("");
+        else event.currentTarget.blur();
+        break;
     }
   }
 
   return (
-    <label className={styles.search}>
-      <Search size={16} strokeWidth={2} className={styles.searchIcon} aria-hidden="true" />
-      <span className="sr-only">{t("search.label")}</span>
-      <input
-        ref={inputRef}
-        type="search"
-        className={styles.searchInput}
-        value={query}
-        onChange={onChange}
-        onKeyDown={onKeyDown}
-        placeholder={
-          gameCount === null
-            ? t("search.placeholder")
-            : t("search.placeholderCount", { count: gameCount })
-        }
-        spellCheck={false}
-        autoComplete="off"
-        aria-keyshortcuts="Control+K"
-      />
-      <kbd className={styles.kbd} aria-hidden="true">
-        {t("search.shortcut")}
-      </kbd>
-    </label>
+    <div className={styles.searchWrap}>
+      <label className={styles.search}>
+        <Search size={16} strokeWidth={2} className={styles.searchIcon} aria-hidden="true" />
+        <span className="sr-only">{t("search.label")}</span>
+        <input
+          ref={inputRef}
+          type="search"
+          role="combobox"
+          className={styles.searchInput}
+          value={query}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setActive(0);
+          }}
+          onKeyDown={onKeyDown}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={
+            gameCount === null
+              ? t("search.placeholder")
+              : t("search.placeholderCount", { count: gameCount })
+          }
+          spellCheck={false}
+          autoComplete="off"
+          aria-keyshortcuts="Control+K"
+          aria-autocomplete="list"
+          aria-expanded={open}
+          aria-controls={LISTBOX_ID}
+          aria-activedescendant={
+            open && results[highlighted] ? `${LISTBOX_ID}-${results[highlighted].appId}` : undefined
+          }
+        />
+        <kbd className={styles.kbd} aria-hidden="true">
+          {t("search.shortcut")}
+        </kbd>
+      </label>
+      {open && (
+        <SearchResults
+          id={LISTBOX_ID}
+          query={query}
+          results={results}
+          highlighted={highlighted}
+          onHighlight={setActive}
+          onPick={openGame}
+        />
+      )}
+    </div>
   );
 }

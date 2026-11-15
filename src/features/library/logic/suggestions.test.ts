@@ -2,7 +2,7 @@ import type { Rule } from "@/lib/bindings";
 import { pickSuggestions } from "./suggestions";
 import { makeGame } from "./testGames";
 
-const story: Rule = { any: [{ field: "tags", op: "includes", value: "Story" }] };
+const story: Rule = { match: "all", conditions: [{ field: "tags", values: ["Story"] }] };
 const today = new Date(2026, 10, 11);
 
 const games = [

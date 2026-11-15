@@ -1,0 +1,26 @@
+.section {
+  padding: 36px var(--page-x) 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.title {
+  font-size: var(--fs-20);
+}
+
+.subtitle {
+  font-size: var(--fs-13);
+  color: var(--text-muted);
+}
+
+.row {
+  display: grid;
+  gap: 18px;
+}

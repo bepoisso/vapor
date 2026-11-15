@@ -1,0 +1,32 @@
+{
+  "_note": "Sample GameDetail for the game page mockup. Values for Celeste are real (taken from the author's Steam client), except fields set to null. Achievement names/icons beyond the next one are not available in the mockup and must come from the Steam API. The next-achievement name/description were translated from the French Steam client ('Cœur de la montagne'); the official English strings come from GetSchemaForGame.",
+  "appId": 504230,
+  "name": "Celeste",
+  "developer": "Maddy Makes Games",
+  "genre": "Platformer",
+  "modes": ["Solo"],
+  "tags": ["Indie", "Hard"],
+  "installed": true,
+  "sizeOnDiskBytes": null,
+  "cloud": "synced",
+  "playtimeMinutes": 2808,
+  "lastPlayed": "2026-01-06",
+  "favorite": true,
+  "achievements": {
+    "unlocked": 18,
+    "total": 32,
+    "next": { "apiName": null, "name": "Heart of the Mountain", "description": "Collect the Crystal Heart in Chapter 8", "icon": null },
+    "items": []
+  },
+  "friends": [
+    { "steamId": null, "personaName": "notoverflow", "avatar": null, "recentPlaytimeMinutes": 456, "status": "played_recently" }
+  ],
+  "friendsWishlisted": 1,
+  "activity": [
+    { "date": "2026-10-29", "type": "friend_achievements", "friend": "notoverflow", "count": 2, "items": [ { "hidden": true }, { "hidden": true } ] }
+  ],
+  "news": [
+    { "gid": null, "date": "2024-11-27", "title": "New Merch!", "excerpt": "Hey there climbers! We just wanted to give you a heads up that Fangamer has some tasty new…", "url": null, "image": null }
+  ],
+  "notes": ""
+}

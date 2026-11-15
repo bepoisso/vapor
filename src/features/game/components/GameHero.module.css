@@ -1,0 +1,219 @@
+/* No overflow clipping here: the settings menu opens over the stat cards below. */
+.hero {
+  position: relative;
+  height: var(--game-hero-height);
+}
+
+/* The banner and its scrims, clipped to the hero. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.scrimV,
+.scrimH {
+  position: absolute;
+  inset: 0;
+}
+
+.scrimV {
+  background: var(--scrim-game-v);
+}
+
+.scrimH {
+  background: var(--scrim-game-h);
+}
+
+.bottom {
+  position: absolute;
+  left: var(--page-x);
+  right: var(--page-x);
+  bottom: 36px;
+  display: flex;
+  align-items: flex-end;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.kicker {
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: var(--tracking-kicker);
+  color: var(--text-on-image);
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+}
+
+.logo {
+  height: 180px;
+  width: auto;
+  max-width: 520px;
+  object-fit: contain;
+  object-position: left bottom;
+}
+
+.titleText {
+  display: block;
+  max-width: 720px;
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: var(--tracking-tight);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.play {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 34px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  font-size: var(--fs-16);
+  white-space: nowrap;
+}
+
+.play:disabled {
+  cursor: default;
+}
+
+.play[data-state="running"] {
+  background: var(--running);
+  color: var(--text-hover);
+}
+
+.iconButton {
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--ghost);
+  color: var(--text-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.iconButton:hover {
+  background: var(--ghost-strong);
+}
+
+.iconButton[aria-pressed="true"] {
+  color: var(--accent);
+}
+
+.menuWrap {
+  position: relative;
+}
+
+/* The settings menu opens to the right of its button, over the stat cards. Two classes so it
+   wins over the shared menu style whatever the stylesheet order. */
+.menuWrap .menu {
+  left: 0;
+  right: auto;
+  min-width: 240px;
+}
+
+.message {
+  margin: 0;
+  font-size: var(--fs-13);
+  color: var(--text-on-image);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badges {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+}
+
+.badge {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-dense);
+  background: var(--overlay-strong);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-13);
+  font-weight: 600;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+/* "Launching…": a small ring spinner. */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* "Running": a pulsing dot. */
+.pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+  animation: pulse 1.6s var(--ease-out) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+}

@@ -10,6 +10,7 @@ All values below are used in `mockups/library.html` (see the `:root` block). Imp
 | `--surface` | `#121218` | Panels (mood module, facet box) |
 | `--surface-2` | `#18181F` | Chips, pills, image placeholders |
 | `--surface-3` | `#1E1E26` | Dividers, subtle fills |
+| `--surface-4` | `#24242C` | Fills inside cards: progress tracks, locked achievement cells (game page) |
 | `--border` | `#1E1E26` | Panel borders |
 | `--border-strong` | `#2A2A33` | Chip/pill borders |
 | `--text` | `#F4F4F6` | Primary text |
@@ -17,6 +18,9 @@ All values below are used in `mockups/library.html` (see the `:root` block). Imp
 | `--text-muted` | `#9B9BA6` | Labels, counts, meta (≥ 4.5:1 on `--bg`) |
 | `--accent` | `#FFD43B` | Primary buttons, active chips/pills, focus ring, hover title |
 | `--accent-ink` | `#0B0B0F` | Text/icons on accent |
+| `--ok` | `#7CF0B0` | "Installed" dot (game page) |
+| `--running` | `#2C2C36` | Play button while the game runs ("Running · Stop") |
+| `--text-faint` | `#6E6E78` | Counts next to tab labels |
 
 Rules:
 - Accent is reserved for **primary action + active state**. Never decorative.

@@ -4,10 +4,12 @@
 mod commands;
 mod enrichment;
 mod error;
+mod game;
 mod images;
 mod library;
 mod model;
 mod protocol;
+mod remote_images;
 mod sessions;
 mod settings;
 mod startup;
@@ -17,9 +19,14 @@ mod web;
 use std::sync::Arc;
 
 use enrichment::service::EnrichmentService;
-use library::service::{LibraryService, LibraryUpdated};
+use game::achievements::AchievementsService;
+use game::news::NewsService;
+use game::social::{SocialService, SocialUpdated};
+use game::user_data::GameUserData;
+use library::service::{self as library_service, LibraryService, LibraryUpdated};
 use library::shelves::ShelfStore;
 use library::tags::Tagging;
+use remote_images::RemoteImages;
 use sessions::{GameSessions, RunningGameChanged};
 use settings::SettingsStore;
 use tauri::Manager;
@@ -37,27 +44,46 @@ fn specta_builder() -> Builder<tauri::Wry> {
         .disable_serde_phases()
         .commands(collect_commands![
             commands::app_info,
+            commands::browse_game_files,
             commands::delete_shelf,
+            commands::game_action,
+            commands::get_game,
+            commands::get_game_achievements,
+            commands::get_game_news,
+            commands::get_game_social,
             commands::get_library,
             commands::get_profile,
             commands::get_running_game,
             commands::get_settings,
+            commands::import_steam_collections,
             commands::install_game,
             commands::launch_game,
-            commands::list_collections,
+            commands::list_hidden_games,
             commands::list_shelves,
             commands::open_api_key_page,
+            commands::open_link,
+            commands::open_news,
+            commands::open_steam_page,
             commands::remove_api_key,
             commands::reorder_shelves,
             commands::report_startup,
             commands::save_api_key,
             commands::save_shelf,
             commands::set_account,
+            commands::set_favorite,
+            commands::set_game_classification,
             commands::set_game_tags,
+            commands::set_hidden,
+            commands::set_notes,
             commands::set_steam_path,
             commands::set_store_enrichment,
+            commands::stop_game,
         ])
-        .events(collect_events![LibraryUpdated, RunningGameChanged])
+        .events(collect_events![
+            LibraryUpdated,
+            RunningGameChanged,
+            SocialUpdated
+        ])
 }
 
 #[cfg(any(debug_assertions, test))]
@@ -86,6 +112,12 @@ pub fn run() {
         .unwrap_or_else(std::env::temp_dir)
         .join(identifier);
     let settings = Arc::new(SettingsStore::load(&config_dir));
+    // The sample library keeps its tag edits, favorites and notes apart from the real ones.
+    let user_dir = if library_service::sample_requested() {
+        config_dir.join("sample")
+    } else {
+        config_dir.clone()
+    };
 
     #[cfg(debug_assertions)]
     export_bindings(&builder);
@@ -111,9 +143,14 @@ pub fn run() {
         .manage(process_start)
         .manage(LibraryService::new(cache_dir.clone(), settings.clone()))
         .manage(GameSessions::new(settings.clone()))
-        .manage(EnrichmentService::new(cache_dir))
+        .manage(EnrichmentService::new(cache_dir.clone()))
+        .manage(AchievementsService::new(&cache_dir))
+        .manage(NewsService::new(&cache_dir))
+        .manage(SocialService::new(&cache_dir))
+        .manage(RemoteImages::new(&cache_dir))
         .manage(HttpClient(web::client()))
-        .manage(Tagging::load(&config_dir))
+        .manage(Tagging::load(&user_dir))
+        .manage(GameUserData::load(&user_dir))
         .manage(ShelfStore::load(&config_dir))
         .manage(settings)
         .register_asynchronous_uri_scheme_protocol(images::SCHEME, |ctx, request, responder| {

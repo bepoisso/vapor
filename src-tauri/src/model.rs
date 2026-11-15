@@ -1,5 +1,5 @@
 //! Data model shared with the frontend (TypeScript types are generated from these).
-//! Shape: `docs/LIBRARY_SPEC.md` §0. Unknown values are `null`, never guessed.
+//! Shape: `docs/LIBRARY_SPEC.md` §0; rules and shelves: `docs/SMART_SHELVES_SPEC.md` §0. Unknown values are `null`, never guessed.
 
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -72,72 +72,117 @@ pub struct Profile {
     pub avatar: Option<String>,
 }
 
+/// What a rule condition looks at (`docs/SMART_SHELVES_SPEC.md` §0).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub enum Field {
     Genre,
     Modes,
     Tags,
-    Installed,
-    PlaytimeMinutes,
+    /// Hours.
+    Playtime,
     LastPlayed,
+    Installed,
     AchievementsPct,
 }
 
+/// Comparison of the number, date and yes/no fields.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
 pub enum Op {
-    Includes,
-    Eq,
-    Lt,
     Gt,
+    Lt,
     OlderThanDays,
+    Is,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Type)]
 #[serde(untagged)]
 pub enum ConditionValue {
     Bool(bool),
     Number(f64),
-    Text(String),
 }
 
+/// Set fields (genre, modes, tags) pass when the game has ANY of `values`; the other fields use
+/// `op` and `value`. A condition with nothing set is ignored.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
 pub struct Condition {
     pub field: Field,
-    pub op: Op,
-    pub value: ConditionValue,
+    #[serde(default)]
+    pub values: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(optional)]
+    pub op: Option<Op>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(optional)]
+    pub value: Option<ConditionValue>,
 }
 
-/// `all` = AND, `any` = OR; both may be set. Groups can nest, so a facet selection like
-/// (Platformer OR RPG) AND (Coop) is expressible. Deviation from the spec, see DECISIONS.md.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub enum Match {
+    /// Every condition (AND).
+    #[default]
+    All,
+    /// At least one condition (OR).
+    Any,
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Type)]
 pub struct Rule {
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    #[specta(optional)]
-    pub all: Vec<RuleNode>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    #[specta(optional)]
-    pub any: Vec<RuleNode>,
+    #[serde(rename = "match")]
+    pub match_mode: Match,
+    #[serde(default)]
+    pub conditions: Vec<Condition>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
-#[serde(untagged)]
-pub enum RuleNode {
-    Condition(Condition),
-    Group(Rule),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
-pub struct SmartShelf {
+pub enum ShelfKind {
+    /// Filled by a rule.
+    Smart,
+    /// Hand-picked games (Favorites).
+    Manual,
+    /// A Steam collection, read-only.
+    Steam,
+}
+
+/// A row of the library: smart (rule), manual (Favorites) or imported from Steam.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct Shelf {
     pub id: String,
-    pub title: String,
-    pub rule: Rule,
-    pub order: u32,
+    pub name: String,
+    pub kind: ShelfKind,
+    /// Smart shelves only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(optional)]
+    pub rule: Option<Rule>,
+    /// Manual and Steam shelves: filled in when listed (Favorites from the favorite toggles,
+    /// Steam shelves from the collection). `null` when unknown (collection not found).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(optional)]
+    pub app_ids: Option<Vec<AppId>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(optional)]
+    pub steam_collection_id: Option<String>,
+    /// Shown on the library page.
+    pub visible: bool,
+    /// Pinned shelves come first, in their own order.
     pub pinned: bool,
-    /// A default shelf the user hasn't edited: hidden when nothing matches. The user's own
-    /// shelves always show, so a new one never disappears before it can be edited.
+    pub order: u32,
+    /// Also a pill in "In the mood for…".
+    #[serde(default)]
+    pub show_as_mood: bool,
+    #[serde(default)]
+    pub hide_not_installed: bool,
+    /// ISO 8601.
+    #[serde(default)]
+    pub created_at: String,
+    #[serde(default)]
+    pub updated_at: String,
+    /// A default shelf the user hasn't edited: hidden in the library when nothing matches. The
+    /// user's own shelves always show, so a new one never disappears before it can be edited.
     #[serde(default)]
     pub seeded: bool,
 }

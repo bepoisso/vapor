@@ -1,0 +1,56 @@
+.stats {
+  display: grid;
+  gap: 14px;
+  padding: 8px var(--page-x) 0;
+}
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.big {
+  margin-top: 4px;
+  font-size: var(--fs-26);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
+.bar {
+  margin-top: 10px;
+}
+
+.person {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.personText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.more {
+  margin-left: auto;
+  height: 26px;
+  min-width: 34px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-4);
+  color: var(--text-2);
+  font-size: var(--fs-12);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

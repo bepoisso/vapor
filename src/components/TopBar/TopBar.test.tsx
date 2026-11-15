@@ -25,7 +25,7 @@ describe("TopBar", () => {
 
   it("focuses the search field with Ctrl+K", async () => {
     renderAt("/");
-    const search = await screen.findByRole("searchbox", { name: "Search your library" });
+    const search = await screen.findByRole("combobox", { name: "Search your library" });
     expect(search).not.toHaveFocus();
     await userEvent.keyboard("{Control>}k{/Control}");
     expect(search).toHaveFocus();
