@@ -1,23 +1,22 @@
-import { ArrowDown, ArrowUp, Ellipsis, Pencil } from "lucide-react";
+import { ArrowDown, ArrowUp, Ellipsis, LayoutList, Pencil } from "lucide-react";
+import { navigate } from "@/app/navigation";
 import { useTranslation } from "@/i18n";
 import menu from "@/components/Menu/Menu.module.css";
 import { useMenu } from "@/components/Menu/useMenu";
-import type { SmartShelf } from "@/lib/bindings";
+import type { Shelf } from "@/lib/bindings";
 import { useLibraryStore } from "../store/libraryStore";
-import { useShelfEditorStore } from "../store/shelfEditorStore";
 import styles from "./SmartShelves.module.css";
 
 interface ShelfMenuProps {
-  shelf: SmartShelf;
+  shelf: Shelf;
   /** The visible shelves above and below, to move past. */
   previousId?: string;
   nextId?: string;
 }
 
-/** "⋯" next to a shelf title: edit (rename, rule, delete) and reorder. */
+/** "⋯" next to a shelf title: edit the rule (smart shelves), reorder, manage all shelves. */
 export function ShelfMenu({ shelf, previousId, nextId }: ShelfMenuProps) {
   const { t } = useTranslation();
-  const openEdit = useShelfEditorStore((state) => state.openEdit);
   const swapShelves = useLibraryStore((state) => state.swapShelves);
   const { open, setOpen, close, rootRef, buttonRef } = useMenu();
 
@@ -32,7 +31,7 @@ export function ShelfMenu({ shelf, previousId, nextId }: ShelfMenuProps) {
         ref={buttonRef}
         type="button"
         className={styles.menuButton}
-        aria-label={t("shelves.menu.more", { title: shelf.title })}
+        aria-label={t("shelves.menu.more", { title: shelf.name })}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
@@ -41,17 +40,19 @@ export function ShelfMenu({ shelf, previousId, nextId }: ShelfMenuProps) {
       </button>
       {open && (
         <ul className={`${menu.menu} ${styles.menuList}`} role="menu">
-          <li role="none">
-            <button
-              type="button"
-              role="menuitem"
-              className={menu.item}
-              onClick={() => act(() => openEdit(shelf))}
-            >
-              {t("shelves.menu.edit")}
-              <Pencil size={14} aria-hidden="true" />
-            </button>
-          </li>
+          {shelf.kind === "smart" && (
+            <li role="none">
+              <button
+                type="button"
+                role="menuitem"
+                className={menu.item}
+                onClick={() => act(() => navigate(`/shelves/${shelf.id}/edit`))}
+              >
+                {t("shelves.menu.edit")}
+                <Pencil size={14} aria-hidden="true" />
+              </button>
+            </li>
+          )}
           {previousId && (
             <li role="none">
               <button
@@ -78,6 +79,17 @@ export function ShelfMenu({ shelf, previousId, nextId }: ShelfMenuProps) {
               </button>
             </li>
           )}
+          <li role="none">
+            <button
+              type="button"
+              role="menuitem"
+              className={menu.item}
+              onClick={() => act(() => navigate("/shelves"))}
+            >
+              {t("shelves.menu.manage")}
+              <LayoutList size={14} aria-hidden="true" />
+            </button>
+          </li>
         </ul>
       )}
     </div>

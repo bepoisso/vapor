@@ -5,7 +5,7 @@ import {
   facetCounts,
   type FacetSelection,
   passesFacets,
-  selectionToRule,
+  facetsToRule,
 } from "./facets";
 import { matchesRule } from "./rules";
 import { makeGame } from "./testGames";
@@ -85,19 +85,15 @@ describe("facetCounts", () => {
   });
 });
 
-describe("selectionToRule", () => {
+describe("facetsToRule", () => {
   it("produces a rule that selects exactly the filtered games", () => {
     const selection = select({ genre: ["Platformer", "Simulation"], modes: ["Coop"] });
-    const rule = selectionToRule(selection);
+    const rule = facetsToRule(selection);
     expect(rule).toEqual({
-      all: [
-        {
-          any: [
-            { field: "genre", op: "includes", value: "Platformer" },
-            { field: "genre", op: "includes", value: "Simulation" },
-          ],
-        },
-        { field: "modes", op: "includes", value: "Coop" },
+      match: "all",
+      conditions: [
+        { field: "genre", values: ["Platformer", "Simulation"] },
+        { field: "modes", values: ["Coop"] },
       ],
     });
     for (const game of games) {

@@ -15,7 +15,7 @@ use specta::Type;
 use tauri::AppHandle;
 use tauri_specta::Event;
 
-use super::sample::{self, SampleLibrary};
+use super::sample::{self, SampleDetail, SampleLibrary};
 use super::snapshot::{self, SNAPSHOT_VERSION, Snapshot};
 use crate::enrichment::Enrichment;
 use crate::enrichment::service::EnrichmentService;
@@ -24,7 +24,8 @@ use crate::images::{ImageKind, ImageRequest};
 use crate::model::{AppId, Game, Profile};
 use crate::settings::SettingsStore;
 use crate::steam::artwork::{self, ArtPaths};
-use crate::steam::collections::SteamCollection;
+use crate::steam::collections::{FAVORITES_ID, SteamCollection};
+use crate::steam::manifests::InstalledApp;
 
 /// `VAPOR_LIBRARY=sample` serves the mockup's sample library instead of the Steam install.
 const SOURCE_ENV: &str = "VAPOR_LIBRARY";
@@ -38,7 +39,7 @@ pub struct LibraryUpdated;
 enum Source {
     /// The Steam install and account picked by the settings (re-read at each scan).
     Steam,
-    Sample(SampleLibrary),
+    Sample(Box<SampleLibrary>),
 }
 
 pub struct LibraryService {
@@ -56,9 +57,10 @@ pub struct LibraryService {
 impl LibraryService {
     /// Picks the source and loads the cached snapshot, if any. Cheap: no Steam file is parsed.
     pub fn new(cache_dir: PathBuf, settings: Arc<SettingsStore>) -> Self {
-        let source = match std::env::var(SOURCE_ENV).as_deref() {
-            Ok("sample") => sample::load().map_or(Source::Steam, Source::Sample),
-            _ => Source::Steam,
+        let source = if sample_requested() {
+            sample::load().map_or(Source::Steam, |library| Source::Sample(Box::new(library)))
+        } else {
+            Source::Steam
         };
         let cached = match source {
             Source::Steam => load_cache(&cache_dir.join(CACHE_FILE)).map(Arc::new),
@@ -99,6 +101,20 @@ impl LibraryService {
         }
     }
 
+    /// Games in Steam's Favorites collection. None for the sample library: its favorite row would
+    /// move the library away from its mockup.
+    pub fn steam_favorites(&self) -> Vec<AppId> {
+        match &self.source {
+            Source::Steam => self
+                .collections()
+                .into_iter()
+                .find(|collection| collection.id == FAVORITES_ID)
+                .map(|collection| collection.app_ids)
+                .unwrap_or_default(),
+            Source::Sample(_) => Vec::new(),
+        }
+    }
+
     /// Whether games come from the Steam install (Store details and tags apply).
     pub fn is_steam(&self) -> bool {
         matches!(self.source, Source::Steam)
@@ -112,6 +128,48 @@ impl LibraryService {
                 .map(|snapshot| snapshot.apps.iter().map(|app| app.app_id).collect())
                 .unwrap_or_default(),
             Source::Sample(_) => Vec::new(),
+        }
+    }
+
+    /// The installed app's manifest facts (size on disk, install folder name).
+    pub fn installed_app(&self, app_id: AppId) -> Option<InstalledApp> {
+        match self.source {
+            Source::Steam => self
+                .current()?
+                .apps
+                .iter()
+                .find(|app| app.app_id == app_id)
+                .cloned(),
+            Source::Sample(_) => None,
+        }
+    }
+
+    /// The folder an installed game lives in: `<library>/steamapps/common/<installdir>`.
+    pub fn install_dir(&self, app_id: AppId) -> Option<PathBuf> {
+        let app = self.installed_app(app_id)?;
+        if app.install_dir.is_empty() {
+            return None;
+        }
+        self.current()?
+            .folders
+            .iter()
+            .map(|folder| {
+                folder
+                    .join("steamapps")
+                    .join("common")
+                    .join(&app.install_dir)
+            })
+            .find(|dir| dir.is_dir())
+    }
+
+    /// Game page extras of the sample library (`mockups/data/game.celeste.sample.json`).
+    pub fn sample_detail(&self, app_id: AppId) -> Option<&SampleDetail> {
+        match &self.source {
+            Source::Sample(library) => library
+                .detail
+                .as_ref()
+                .filter(|detail| detail.app_id == app_id),
+            Source::Steam => None,
         }
     }
 
@@ -170,6 +228,7 @@ impl LibraryService {
                 self.extra_art_path(*app_id, *kind)
             }
             (Source::Steam, ImageRequest::Avatar) => self.current()?.avatar.clone(),
+            (_, ImageRequest::Remote(..)) => None,
         }
     }
 
@@ -287,6 +346,11 @@ impl LibraryService {
         }
         *self.watcher.lock().unwrap_or_else(PoisonError::into_inner) = Some(debouncer);
     }
+}
+
+/// Whether `VAPOR_LIBRARY=sample` asks for the sample library.
+pub fn sample_requested() -> bool {
+    std::env::var(SOURCE_ENV).as_deref() == Ok("sample")
 }
 
 fn refresh_and_notify(app: &AppHandle) {

@@ -1,6 +1,8 @@
 import { useTranslation } from "@/i18n";
 import { AccountSection } from "./AccountSection";
 import { ApiKeySection } from "./ApiKeySection";
+import { HiddenGamesSection } from "./HiddenGamesSection";
+import { ShelvesSection } from "./ShelvesSection";
 import { SteamFolderSection } from "./SteamFolderSection";
 import { StoreSection } from "./StoreSection";
 import { useSettings } from "./useSettings";
@@ -20,6 +22,8 @@ export function SettingsPage() {
           <StoreSection view={view} settings={settings} />
           <AccountSection view={view} settings={settings} />
           <SteamFolderSection view={view} settings={settings} />
+          <ShelvesSection />
+          <HiddenGamesSection />
         </>
       )}
     </main>

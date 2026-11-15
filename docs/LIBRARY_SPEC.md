@@ -34,7 +34,7 @@ interface Mood { id: string; label: string; icon: string; rule: Rule }
 
 ## 1. Top bar (over the hero)
 - Logo · nav (Store / **Library** / Community) · search · profile.
-- Search: filters by name as you type; `Ctrl K` focuses it. For v1, typing scrolls to the Library section and applies a name filter on top of facet filters. (A full command palette can come later.)
+- Search: matching games (by name, as you type) show in a box under the field, over the page; picking one opens its game page. `Ctrl K` focuses it; arrows move through the results, `Enter` opens, `Esc` clears. It does not filter the Library grid (owner's choice, 2026-11-15). (A full command palette can come later.)
 - Store / Community: route placeholders for now.
 
 ## 2. Hero — "Continue"
@@ -73,4 +73,4 @@ interface Mood { id: string; label: string; icon: string; rule: Rule }
 - Hover effects are not required to discover any feature.
 
 ## Out of scope for this iteration
-Game page design, Store/Community webviews, profile page, friends/chat, download management UI.
+Store/Community webviews, profile page, friends/chat, download management UI.

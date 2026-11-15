@@ -42,6 +42,27 @@
   opacity: 0.6;
 }
 
+/* "← Library" on the game page */
+.back {
+  height: 40px;
+  padding: 0 14px 0 10px;
+  border-radius: var(--radius-md);
+  background: var(--overlay-strong);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.back:hover {
+  background: var(--ghost-strong);
+}
+
+.spacer {
+  flex: 1;
+}
+
 /* Segmented nav */
 .nav {
   display: flex;
@@ -50,6 +71,10 @@
   padding: 4px;
   border-radius: var(--radius-md);
   background: var(--overlay);
+}
+
+.nav[data-after-back="true"] {
+  margin-left: 0;
 }
 
 .navItem {
@@ -74,8 +99,12 @@
 }
 
 /* Search */
-.search {
+.searchWrap {
+  position: relative;
   margin: 0 auto;
+}
+
+.search {
   width: 380px;
   height: 40px;
   display: flex;
@@ -122,6 +151,74 @@
   border: 1px solid var(--overlay-border-strong);
   border-radius: var(--radius-xs);
   padding: 1px 5px;
+}
+
+/* Search results: a box under the field, over the page. */
+.results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-lift);
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.result[aria-selected="true"] {
+  background: var(--surface-3);
+}
+
+.resultCover {
+  flex: none;
+  width: 32px;
+  height: 48px;
+  border-radius: var(--radius-xs);
+  object-fit: cover;
+  background: var(--surface-3);
+}
+
+.resultText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.resultName {
+  font-size: var(--fs-13);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result[aria-selected="true"] .resultName {
+  color: var(--accent);
+}
+
+.resultMeta {
+  font-size: var(--fs-12);
+  color: var(--text-muted);
+}
+
+.noResults {
+  margin: 0;
+  padding: 10px 8px;
+  font-size: var(--fs-13);
+  color: var(--text-muted);
 }
 
 /* Profile */

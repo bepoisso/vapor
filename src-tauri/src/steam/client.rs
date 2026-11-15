@@ -15,6 +15,12 @@ use crate::steam::SteamInstall;
 pub enum SteamAction {
     Launch,
     Install,
+    /// Steam checks the game's files and repairs them.
+    Validate,
+    /// Steam asks for confirmation itself.
+    Uninstall,
+    /// Steam's Properties dialog (launch options). Unverified URL, see STEAM_INTEGRATION.md.
+    Properties,
 }
 
 impl SteamAction {
@@ -22,6 +28,9 @@ impl SteamAction {
         match self {
             Self::Launch => format!("steam://rungameid/{app_id}"),
             Self::Install => format!("steam://install/{app_id}"),
+            Self::Validate => format!("steam://validate/{app_id}"),
+            Self::Uninstall => format!("steam://uninstall/{app_id}"),
+            Self::Properties => format!("steam://gameproperties/{app_id}"),
         }
     }
 }
@@ -93,6 +102,44 @@ pub fn is_steam_running() -> bool {
     true
 }
 
+/// Ends the game's processes: every process whose executable lives in `install_dir`. Steam has
+/// no URL to close a game, so this is what "Stop" does (after the user confirms). Returns how
+/// many processes were asked to end.
+#[cfg(windows)]
+pub fn stop_game(install_dir: &std::path::Path) -> Result<u32, Error> {
+    use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
+
+    let mut system = System::new().map_err(|error| Error::Process(error.to_string()))?;
+    system.refresh_processes_specifics(
+        ProcessesToUpdate::All,
+        true,
+        ProcessRefreshKind::nothing().with_exe(UpdateKind::OnlyIfNotSet),
+    );
+    let mut stopped = 0;
+    for process in system.processes().values() {
+        if process
+            .exe()
+            .is_some_and(|exe| exe.starts_with(install_dir))
+            && process.kill()
+        {
+            stopped += 1;
+        }
+    }
+    if stopped == 0 {
+        return Err(Error::Process(
+            "no running process found in the game folder".into(),
+        ));
+    }
+    Ok(stopped)
+}
+
+#[cfg(not(windows))]
+pub fn stop_game(_install_dir: &std::path::Path) -> Result<u32, Error> {
+    Err(Error::Process(
+        "stopping a game is only supported on Windows".into(),
+    ))
+}
+
 /// The app Steam reports as running (`RunningAppID`, 0 when none).
 #[cfg(windows)]
 pub fn running_app() -> Option<AppId> {
@@ -123,6 +170,8 @@ mod tests {
     fn builds_steam_urls() {
         assert_eq!(SteamAction::Launch.url(504230), "steam://rungameid/504230");
         assert_eq!(SteamAction::Install.url(620), "steam://install/620");
+        assert_eq!(SteamAction::Validate.url(620), "steam://validate/620");
+        assert_eq!(SteamAction::Uninstall.url(620), "steam://uninstall/620");
     }
 
     #[test]

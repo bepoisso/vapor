@@ -22,10 +22,20 @@
 
 .createRow {
   --section-top: 20px;
+  flex-direction: row;
+  align-items: center;
+  gap: 18px;
 }
 
-.create {
-  align-self: flex-start;
+.manage {
+  color: var(--text-muted);
+  font-size: var(--fs-13);
+  font-weight: 500;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.manage:hover {
+  color: var(--text-hover);
 }
 
 .empty {

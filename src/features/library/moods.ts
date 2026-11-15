@@ -1,5 +1,6 @@
-import { Book, Clock, Coffee, Compass, type LucideIcon, Star, Users } from "lucide-react";
-import type { Condition, Rule } from "@/lib/bindings";
+import { Book, Clock, Coffee, Compass, type LucideIcon, Sparkles, Star, Users } from "lucide-react";
+import type { Translate } from "@/i18n";
+import type { Field, Rule, Shelf } from "@/lib/bindings";
 
 export const MOOD_IDS = ["friends", "story", "hard", "chill", "quick", "explore"] as const;
 export type MoodId = (typeof MOOD_IDS)[number];
@@ -11,15 +12,40 @@ export interface Mood {
   rule: Rule;
 }
 
-const tag = (value: string): Condition => ({ field: "tags", op: "includes", value });
-const mode = (value: string): Condition => ({ field: "modes", op: "includes", value });
+const anyOf = (field: Field, ...values: string[]): Rule => ({
+  match: "all",
+  conditions: [{ field, values }],
+});
 
 /** Default moods (`docs/LIBRARY_SPEC.md` §4). Labels: `mood.moods.<id>` in the locale file. */
 export const MOODS: readonly Mood[] = [
-  { id: "friends", icon: Users, rule: { any: [mode("Coop"), mode("PvP")] } },
-  { id: "story", icon: Book, rule: { any: [tag("Story")] } },
-  { id: "hard", icon: Star, rule: { any: [tag("Hard")] } },
-  { id: "chill", icon: Coffee, rule: { any: [tag("Chill")] } },
-  { id: "quick", icon: Clock, rule: { any: [tag("Short sessions")] } },
-  { id: "explore", icon: Compass, rule: { any: [tag("Exploration")] } },
+  { id: "friends", icon: Users, rule: anyOf("modes", "Coop", "PvP") },
+  { id: "story", icon: Book, rule: anyOf("tags", "Story") },
+  { id: "hard", icon: Star, rule: anyOf("tags", "Hard") },
+  { id: "chill", icon: Coffee, rule: anyOf("tags", "Chill") },
+  { id: "quick", icon: Clock, rule: anyOf("tags", "Short sessions") },
+  { id: "explore", icon: Compass, rule: anyOf("tags", "Exploration") },
 ];
+
+/** A pill of "In the mood for…": a default mood, or a shelf shown as a mood. */
+export interface MoodOption {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  rule: Rule;
+}
+
+/** The default moods, then the smart shelves marked "Show as mood", in shelf order. */
+export function moodOptions(shelves: readonly Shelf[], t: Translate): MoodOption[] {
+  return [
+    ...MOODS.map((mood) => ({ ...mood, label: t(`mood.moods.${mood.id}`) })),
+    ...shelves
+      .filter((shelf) => shelf.showAsMood && shelf.kind === "smart" && shelf.rule)
+      .map((shelf) => ({
+        id: `shelf:${shelf.id}`,
+        label: shelf.name,
+        icon: Sparkles,
+        rule: shelf.rule ?? { match: "all" as const, conditions: [] },
+      })),
+  ];
+}

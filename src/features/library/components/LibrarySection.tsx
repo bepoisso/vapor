@@ -2,17 +2,10 @@ import { useMemo } from "react";
 import { useTranslation } from "@/i18n";
 import buttons from "@/components/Button/buttons.module.css";
 import type { Game } from "@/lib/bindings";
-import {
-  buildFacets,
-  facetCounts,
-  hasSelection,
-  passesFacets,
-  selectionToRule,
-} from "../logic/facets";
-import { filterByName } from "../logic/search";
+import { buildFacets, facetCounts, hasSelection, passesFacets } from "../logic/facets";
 import { sortGames } from "../logic/sorting";
 import { useFiltersStore } from "../store/filtersStore";
-import { useShelfEditorStore } from "../store/shelfEditorStore";
+import { useSaveShelfDialogStore } from "@/features/shelves/store/saveShelfDialogStore";
 import { FacetBox } from "./FacetBox";
 import { LibraryGrid } from "./LibraryGrid";
 import styles from "./LibrarySection.module.css";
@@ -26,27 +19,24 @@ interface LibrarySectionProps {
   games: readonly Game[];
 }
 
-/** Full library: facets (OR within, AND across) + name search + sort, over a virtualized grid. */
+/** Full library: facets (OR within, AND across) + sort, over a virtualized grid. */
 export function LibrarySection({ games }: LibrarySectionProps) {
   const { t } = useTranslation();
-  const query = useFiltersStore((state) => state.query);
   const selection = useFiltersStore((state) => state.selection);
   const sort = useFiltersStore((state) => state.sort);
   const toggleFacetValue = useFiltersStore((state) => state.toggleFacetValue);
   const clearSelection = useFiltersStore((state) => state.clearSelection);
   const setSort = useFiltersStore((state) => state.setSort);
-  const openShelfEditor = useShelfEditorStore((state) => state.openNew);
+  const openSaveDialog = useSaveShelfDialogStore((state) => state.open);
 
-  // Explicit memos: the React Compiler would merge these steps into one scope (filterByName may
-  // return its input), re-sorting 1,000+ games on every keystroke. Sorting once and filtering
-  // the sorted list keeps it sorted, so facet clicks and typing never re-sort.
+  // Explicit memos: sorting once and filtering the sorted list keeps it sorted, so facet clicks
+  // never re-sort 1,000+ games.
   const facets = useMemo(() => buildFacets(games), [games]);
   const sorted = useMemo(() => sortGames(games, sort), [games, sort]);
-  const searched = useMemo(() => filterByName(sorted, query), [sorted, query]);
-  const counts = useMemo(() => facetCounts(searched, selection), [searched, selection]);
+  const counts = useMemo(() => facetCounts(sorted, selection), [sorted, selection]);
   const visible = useMemo(
-    () => searched.filter((game) => passesFacets(game, selection)),
-    [searched, selection],
+    () => sorted.filter((game) => passesFacets(game, selection)),
+    [sorted, selection],
   );
   const filtering = hasSelection(selection);
 
@@ -75,7 +65,7 @@ export function LibrarySection({ games }: LibrarySectionProps) {
             <button
               type="button"
               className={`${buttons.base} ${buttons.smallAccent}`}
-              onClick={() => openShelfEditor(selectionToRule(selection))}
+              onClick={() => openSaveDialog(selection)}
             >
               {t("library.saveShelf")}
             </button>
@@ -87,9 +77,7 @@ export function LibrarySection({ games }: LibrarySectionProps) {
       <FacetBox facets={facets} counts={counts} selection={selection} onToggle={toggleFacetValue} />
 
       {visible.length === 0 ? (
-        <div className={styles.empty}>
-          {query && !filtering ? t("library.emptyQuery", { query }) : t("library.empty")}
-        </div>
+        <div className={styles.empty}>{t("library.empty")}</div>
       ) : (
         <LibraryGrid games={visible} />
       )}

@@ -3,14 +3,19 @@
     "label": "Main",
     "store": "Store",
     "library": "Library",
-    "community": "Community"
+    "community": "Community",
+    "back": "Library",
+    "backLabel": "Back to the library"
   },
   "search": {
     "label": "Search your library",
     "placeholder": "Search your library",
     "placeholderCount_one": "Search your {{count}} game",
     "placeholderCount_other": "Search your {{count}} games",
-    "shortcut": "Ctrl K"
+    "shortcut": "Ctrl K",
+    "results": "Games",
+    "noResults": "No game matches “{{query}}”.",
+    "notInstalled": "Not installed"
   },
   "profile": {
     "label": "Profile",
@@ -23,9 +28,7 @@
     "store": "Store",
     "community": "Community",
     "profile": "Profile",
-    "game": "Game page",
     "history": "History",
-    "shelf": "Smart shelf",
     "comingSoon": "Coming soon."
   },
   "settings": {
@@ -64,6 +67,17 @@
       "placeholder": "Steam folder",
       "save": "Use this folder",
       "reset": "Use the detected folder"
+    },
+    "hidden": {
+      "title": "Hidden games",
+      "description": "Games you hid from the library from their game page. They stay installed and owned.",
+      "empty": "No hidden game.",
+      "show": "Show in library"
+    },
+    "shelves": {
+      "title": "Shelves",
+      "description": "Choose which shelves the library shows, their order, and import your Steam collections.",
+      "open": "Manage shelves"
     }
   },
   "status": {
@@ -120,56 +134,13 @@
     "collection": "Steam collection",
     "menu": {
       "more": "Actions for {{title}}",
-      "edit": "Edit…",
+      "edit": "Edit rule…",
       "moveUp": "Move up",
-      "moveDown": "Move down"
-    }
-  },
-  "shelfEditor": {
-    "newTitle": "New smart shelf",
-    "editTitle": "Edit smart shelf",
-    "name": "Name",
-    "namePlaceholder": "Shelf name",
-    "match": {
-      "label": "Show games matching",
-      "all": "All conditions",
-      "any": "Any condition"
+      "moveDown": "Move down",
+      "manage": "Manage shelves…"
     },
-    "field": "Condition",
-    "operator": "Comparison",
-    "fields": {
-      "genre": "Genre",
-      "modes": "Mode",
-      "tags": "Vibe",
-      "installed": "Installed",
-      "playtimeMinutes": "Playtime",
-      "lastPlayed": "Not played for",
-      "achievementsPct": "Achievements"
-    },
-    "ops": {
-      "gt": "More than",
-      "lt": "Less than"
-    },
-    "units": {
-      "hours": "hours",
-      "days": "days",
-      "percent": "%"
-    },
-    "installed": {
-      "yes": "Installed",
-      "no": "Not installed"
-    },
-    "noValues": "None in your library yet.",
-    "addCondition": "+ Add condition",
-    "removeCondition": "Remove condition",
-    "preview_one": "{{count}} game matches.",
-    "preview_other": "{{count}} games match.",
-    "needsCondition": "Add at least one condition.",
-    "unsupported": "This rule ({{rule}}) can't be edited here. You can still rename or delete the shelf.",
-    "delete": "Delete shelf",
-    "confirmDelete": "Click again to delete",
-    "cancel": "Cancel",
-    "save": "Save"
+    "favorites": "Favorites",
+    "manage": "Manage shelves"
   },
   "library": {
     "title": "Library",
@@ -191,8 +162,7 @@
     },
     "chip_one": "{{value}}, {{count}} game",
     "chip_other": "{{value}}, {{count}} games",
-    "empty": "No game matches all of these. Remove a filter.",
-    "emptyQuery": "No game matches “{{query}}”."
+    "empty": "No game matches all of these. Remove a filter."
   },
   "card": {
     "play": "Play {{name}}",
@@ -214,11 +184,340 @@
   "rules": {
     "and": "+",
     "or": "or",
+    "anyJoiner": "|",
+    "everything": "Everything",
     "installed": "Installed",
     "notInstalled": "Not installed",
     "notPlayedFor_one": "Not played for {{count}} day",
     "notPlayedFor_other": "Not played for {{count}} days",
-    "playtime": "Playtime {{symbol}} {{value}} min",
-    "achievements": "Achievements {{symbol}} {{value}}%"
+    "playtime": "Playtime {{symbol}} {{value}} h",
+    "achievements": "Achievements {{symbol}} {{value}}%",
+    "fields": {
+      "genre": "Genre",
+      "modes": "Mode",
+      "tags": "Vibe",
+      "playtime": "Playtime",
+      "lastPlayed": "Last played",
+      "installed": "Installed",
+      "achievementsPct": "Achievements %"
+    },
+    "sentence": {
+      "games": "Games {{clauses}}.",
+      "everything": "No condition: your whole library.",
+      "and": ", and ",
+      "or": ", or ",
+      "set": "whose {{field}} is {{values}}",
+      "installed": "that are installed",
+      "notInstalled": "that aren’t installed",
+      "playtimeGt": "with more than {{value}} h played",
+      "playtimeLt": "with less than {{value}} h played",
+      "notPlayedFor_one": "not played for {{count}} day",
+      "notPlayedFor_other": "not played for {{count}} days",
+      "achievementsGt": "with more than {{value}}% of achievements",
+      "achievementsLt": "with less than {{value}}% of achievements"
+    }
+  },
+  "game": {
+    "loading": "Loading…",
+    "notFound": {
+      "title": "This game isn’t in your library.",
+      "body": "It may have been uninstalled, or the Steam account changed.",
+      "back": "Back to the library"
+    },
+    "kickerLabel": "Developer, genre and modes",
+    "play": {
+      "play": "Play",
+      "install": "Install",
+      "update": "Update",
+      "launching": "Launching…",
+      "running": "Running · Stop",
+      "runningNoStop": "Running"
+    },
+    "favorite": "Favorite",
+    "settings": {
+      "label": "Game settings",
+      "properties": "Properties…",
+      "browse": "Browse local files",
+      "validate": "Verify integrity of game files",
+      "uninstall": "Uninstall…",
+      "hide": "Hide from library",
+      "show": "Show in library"
+    },
+    "hiddenNotice": "Hidden from your library.",
+    "steamError": "Couldn’t reach Steam: {{message}}",
+    "badges": {
+      "installed": "Installed",
+      "installedSize": "Installed · {{size}}",
+      "notInstalled": "Not installed",
+      "updatePending": "Update pending"
+    },
+    "stop": {
+      "title": "Stop {{name}}?",
+      "body": "Vapor will close the game’s processes. Unsaved progress may be lost.",
+      "cancel": "Cancel",
+      "confirm": "Stop game",
+      "error": "Couldn’t stop the game: {{message}}"
+    },
+    "stats": {
+      "label": "Your stats",
+      "playtime": "Playtime",
+      "lastSession": "Last session",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "never": "Never",
+      "achievements": "Achievements",
+      "achievementsValue": "{{unlocked}} / {{total}}",
+      "achievementsLabel": "{{unlocked}} of {{total}} achievements unlocked",
+      "friends": "Friends playing",
+      "inGame": "Playing now",
+      "recently": "{{hours}} recently",
+      "owns": "Owns it",
+      "more": "+{{count}}",
+      "moreLabel_one": "and {{count}} more friend",
+      "moreLabel_other": "and {{count}} more friends"
+    },
+    "tabs": {
+      "label": "Game sections",
+      "overview": "Overview",
+      "achievements": "Achievements",
+      "news": "News",
+      "guides": "Guides",
+      "discussions": "Discussions",
+      "notes": "My notes",
+      "store": "Store page ↗"
+    },
+    "activity": {
+      "title": "Activity",
+      "earned_one": "earned {{count}} achievement · {{date}}",
+      "earned_other": "earned {{count}} achievements · {{date}}",
+      "hidden": "Hidden achievement",
+      "hiddenHint": "Keep playing to reveal it",
+      "unknown": "Achievement",
+      "seeMore": "See more",
+      "seeLess": "See less"
+    },
+    "news": {
+      "title": "News",
+      "empty": "No news from the developer yet.",
+      "error": "Couldn’t load the news.",
+      "back": "← All news",
+      "openOnSteam": "Open on Steam ↗"
+    },
+    "achievements": {
+      "title": "Achievements",
+      "nextUp": "Next up",
+      "allDone": "Every achievement unlocked.",
+      "seeAll": "See all {{count}} achievements →",
+      "gridLabel": "{{unlocked}} of {{total}} achievements unlocked",
+      "summary": "{{unlocked}} of {{total}} unlocked · {{percent}}%",
+      "filter": {
+        "label": "Show",
+        "all": "All",
+        "unlocked": "Unlocked",
+        "locked": "Locked"
+      },
+      "sort": {
+        "label": "Sort",
+        "unlockDate": "Unlock date",
+        "rarity": "Rarity"
+      },
+      "hidden": "Hidden achievement",
+      "hiddenHint": "Keep playing to reveal it",
+      "locked": "Locked",
+      "unlockedOn": "Unlocked {{date}}",
+      "global": "{{percent}}% of players",
+      "unavailable": "The full list isn’t available for this game.",
+      "error": "Couldn’t load the achievements.",
+      "none": "Nothing to show with this filter."
+    },
+    "tags": {
+      "title": "Tags",
+      "edit": "+ Edit tags",
+      "done": "Done",
+      "appearsIn": "Appears in: {{places}}",
+      "nowhere": "Not in any smart shelf or mood yet.",
+      "shelf": "shelf “{{name}}”",
+      "mood": "mood “{{name}}”",
+      "rows": {
+        "genre": "Genre",
+        "modes": "Mode",
+        "tags": "Vibe"
+      },
+      "hint": "Starting tags come from Steam genres and categories. Your edits stay on this computer.",
+      "error": "Couldn’t save the tags: {{message}}"
+    },
+    "similar": {
+      "title": "More like this",
+      "subtitle": "In your library · shared tags"
+    },
+    "community": {
+      "guides": "Player guides for this game live on Steam Community.",
+      "discussions": "Discussions for this game live on Steam Community.",
+      "openGuides": "Open guides ↗",
+      "openDiscussions": "Open discussions ↗",
+      "browserNote": "Opens in your browser."
+    },
+    "notes": {
+      "label": "My notes",
+      "placeholder": "Personal notes for this game (saved on this computer)…",
+      "saved": "Saved on this computer.",
+      "saving": "Saving…",
+      "error": "Couldn’t save: {{message}}"
+    }
+  },
+  "row": {
+    "previous": "Show previous games",
+    "next": "Show more games"
+  },
+  "shelf": {
+    "kicker": "Shelf",
+    "kickerSmart": "Smart shelf",
+    "countSmart_one": "{{count}} game · updates itself",
+    "countSmart_other": "{{count}} games · updates itself",
+    "count_one": "{{count}} game",
+    "count_other": "{{count}} games",
+    "pinned": "Pinned",
+    "playRandom": "Play a random one",
+    "rule": "Rule",
+    "and": "AND",
+    "or": "OR",
+    "add": "+ Add:",
+    "editRule": "Edit in detail →",
+    "removeCondition": "Remove {{condition}}",
+    "saved": "Saved",
+    "undo": "Undo",
+    "empty": "No game matches the whole rule.",
+    "emptyManual": "No game in this shelf yet.",
+    "gamesLabel": "Games in this shelf",
+    "almost": "Almost in",
+    "almostHint": "One criterion missing — add the tag to include them",
+    "missing": "missing: {{value}}",
+    "notFound": "This shelf doesn’t exist anymore."
+  },
+  "builder": {
+    "newTitle": "New smart shelf",
+    "editTitle": "Edit shelf",
+    "cancel": "Cancel",
+    "discard": "Discard changes?",
+    "saveAsMood": "Save as mood",
+    "create": "Create shelf",
+    "save": "Save",
+    "name": "Name",
+    "namePlaceholder": "Shelf name",
+    "duplicate": "Another shelf already has this name.",
+    "match": "Match",
+    "matchModes": {
+      "all": "All conditions (AND)",
+      "any": "Any condition (OR)"
+    },
+    "conditions": "Conditions",
+    "isAnyOf": "is any of",
+    "removeCondition": "Remove the {{field}} condition",
+    "comparison": "{{field}} comparison",
+    "ops": {
+      "gt": "More than",
+      "lt": "Less than"
+    },
+    "olderThan": "More than",
+    "units": {
+      "hours": "h",
+      "daysAgo": "days ago",
+      "percent": "%"
+    },
+    "noValues": "None in your library yet.",
+    "display": {
+      "label": "Display",
+      "visible": "Show in the library",
+      "pinned": "Pin at the top of the shelves",
+      "hideNotInstalled": "Hide games that aren’t installed"
+    },
+    "preview": "Live preview",
+    "matchCount_one": "game matches",
+    "matchCount_other": "games match",
+    "empty": "No game yet. Widen a condition or switch to “Any condition”.",
+    "notFound": "This shelf can’t be edited here."
+  },
+  "manage": {
+    "title": "My shelves",
+    "subtitle": "Choose which shelves appear in the library, and in what order.",
+    "import": "Import my Steam collections",
+    "new": "+ New shelf",
+    "filter": "Shelf kinds",
+    "filters": {
+      "all": "All",
+      "smart": "Smart",
+      "manual": "Manual",
+      "steam": "From Steam"
+    },
+    "kinds": {
+      "smart": "Smart",
+      "manual": "Manual",
+      "steam": "From Steam"
+    },
+    "pinned": "Pinned",
+    "mood": "Mood",
+    "subSmart": "{{rule}} · {{count}} games",
+    "subManual": "Added by hand · {{count}} games",
+    "subSteam": "Steam collection (read-only) · {{count}} games",
+    "show": "Show {{name}} in the library",
+    "edit": "Edit {{name}}",
+    "more": "More options for {{name}}",
+    "readOnly": "Steam collections are read-only",
+    "drag": "Drag to reorder {{name}}",
+    "moveUp": "Move {{name}} up",
+    "moveDown": "Move {{name}} down",
+    "menu": {
+      "rename": "Rename…",
+      "duplicate": "Duplicate",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "moodOn": "Show as mood",
+      "moodOff": "Stop showing as mood",
+      "delete": "Delete…"
+    },
+    "copy": "copy",
+    "renameTitle": "Rename shelf",
+    "rename": "Rename",
+    "deleteTitle": "Delete “{{name}}”?",
+    "deleteBody": "The shelf goes away; your games stay in the library. This can’t be undone.",
+    "deleteSteam": "Vapor stops showing this collection. Steam keeps it; import it again anytime.",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "empty": "No shelf of this kind.",
+    "outline": "Library preview",
+    "blocks": {
+      "hero": "Hero · Continue",
+      "recent": "Recently played",
+      "mood": "In the mood for…",
+      "library": "Library + filters"
+    }
+  },
+  "saveShelf": {
+    "title": "Save as shelf",
+    "close": "Close",
+    "name": "Name",
+    "suggestions": "Suggestions:",
+    "ideas": {
+      "weekend": "Weekend picks",
+      "next": "Up next"
+    },
+    "rule": "Rule (from your filters)",
+    "editInDetail": "Edit in detail →",
+    "preview_one": "Preview · {{count}} game",
+    "preview_other": "Preview · {{count}} games",
+    "auto": "New matching games are added automatically",
+    "where": "Where to show it",
+    "places": {
+      "library": "Library",
+      "libraryHint": "As a row",
+      "mood": "In the mood for…",
+      "moodHint": "As a mood pill",
+      "pinned": "Pinned",
+      "pinnedHint": "Top of the shelves"
+    },
+    "cancel": "Cancel",
+    "create": "Create shelf",
+    "created": "Shelf created",
+    "view": "View"
   }
 }

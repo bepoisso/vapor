@@ -22,6 +22,10 @@ pub struct StoreDetails {
     pub genres: Vec<String>,
     /// Store category IDs (2 = Single-player, 9 = Co-op, 49 = PvP…).
     pub categories: Vec<u32>,
+    /// Developer names as the Store lists them. `None` in entries cached before Vapor asked for
+    /// them: those are refetched (see `Enrichment::stale_store`).
+    #[serde(default)]
+    pub developers: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -38,6 +42,8 @@ struct Data {
     genres: Vec<Genre>,
     #[serde(default)]
     categories: Vec<Category>,
+    #[serde(default)]
+    developers: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -66,7 +72,7 @@ pub async fn app_details(client: &Client, app_id: AppId) -> Result<StoreAnswer, 
         .query(&[
             ("appids", app_id.to_string().as_str()),
             ("l", "english"),
-            ("filters", "basic,genres,categories"),
+            ("filters", "basic,genres,categories,developers"),
         ])
         .send()
         .await
@@ -103,6 +109,7 @@ fn parse(mut body: HashMap<String, Entry>, app_id: AppId) -> StoreAnswer {
                 .into_iter()
                 .map(|category| category.id)
                 .collect(),
+            developers: Some(data.developers),
         }),
         _ => StoreAnswer::Unknown,
     }
@@ -117,7 +124,8 @@ mod tests {
         let body = serde_json::from_str(
             r#"{"620":{"success":true,"data":{"type":"game","name":"Portal 2",
                 "genres":[{"id":"1","description":"Action"},{"id":"25","description":"Adventure"}],
-                "categories":[{"id":2,"description":"Single-player"},{"id":9,"description":"Co-op"}]}}}"#,
+                "categories":[{"id":2,"description":"Single-player"},{"id":9,"description":"Co-op"}],
+                "developers":["Valve"]}}}"#,
         )
         .unwrap();
         assert_eq!(
@@ -126,6 +134,7 @@ mod tests {
                 app_type: "game".into(),
                 genres: vec!["Action".into(), "Adventure".into()],
                 categories: vec![2, 9],
+                developers: Some(vec!["Valve".into()]),
             })
         );
     }

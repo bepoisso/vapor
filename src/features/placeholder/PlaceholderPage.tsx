@@ -2,12 +2,7 @@ import { useTranslation } from "@/i18n";
 import styles from "./PlaceholderPage.module.css";
 
 type PlaceholderKey =
-  | "placeholder.store"
-  | "placeholder.community"
-  | "placeholder.profile"
-  | "placeholder.game"
-  | "placeholder.history"
-  | "placeholder.shelf";
+  "placeholder.store" | "placeholder.community" | "placeholder.profile" | "placeholder.history";
 
 interface PlaceholderPageProps {
   titleKey: PlaceholderKey;

@@ -46,6 +46,42 @@
   background: var(--ghost-hover);
 }
 
+/* Medium: page headers and dialogs of the shelves screens */
+.medium,
+.mediumAccent,
+.mediumGhost {
+  height: 42px;
+  padding: 0 16px;
+  gap: 8px;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-13);
+}
+
+.medium {
+  background: var(--surface-quiet);
+  color: var(--text-2);
+}
+
+.medium:hover {
+  background: var(--ghost-hover);
+  color: var(--text-hover);
+}
+
+.mediumAccent {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+
+.mediumGhost {
+  background: var(--ghost);
+  color: var(--text-hover);
+}
+
+.mediumGhost:hover {
+  background: var(--ghost-hover);
+}
+
 /* Small: toolbar actions */
 .small,
 .smallAccent,

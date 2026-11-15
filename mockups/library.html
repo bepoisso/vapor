@@ -9,7 +9,7 @@
   This is the approved "Mix A" library layout, ported to a single static file (vanilla JS, no build).
   Open it directly in a browser. Images are in ./assets and use Steam's own cache file names
   (<appid>_library_600x900.jpg, <appid>_library_hero.jpg, <appid>_logo.png).
-  Interactive parts: mood pills, facet chips (filter the grid). Everything else is static.
+  Interactive parts: mood pills, facet chips (filter the grid). Every game card links to game.html (Celeste) for the demo.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -144,7 +144,7 @@
     <img class="hero__logo" src="assets/504230_logo.png" alt="Celeste">
     <div class="row">
       <a class="btn btn--primary" href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="#0B0B0F" aria-hidden="true"><path d="M7 4l12 8-12 8z"/></svg>Play</a>
-      <a class="btn btn--ghost" href="#">Game page</a>
+      <a class="btn btn--ghost" href="game.html">Game page</a>
       <span class="hero__meta">46.8 h · 18/32 achievements · Cloud synced</span>
     </div>
   </div>
@@ -246,7 +246,7 @@ const playIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="#0B0B0F"
 const sparkle = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFD43B" stroke-width="2.4" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>';
 
 const coverHTML = (g, sub) => `
-  <a class="cover" href="#" title="${esc(g.name)}">
+  <a class="cover" href="game.html" title="${esc(g.name)}">
     <img class="cover__art" src="${img(g.appId, "library_600x900.jpg")}" alt="" loading="lazy">
     <span class="cover__title">${esc(g.name)}</span>
     ${sub ? `<span class="cover__sub">${esc(sub)}</span>` : ""}
@@ -267,7 +267,7 @@ function renderMoods() {
     </button>`).join("");
   const mood = MOODS.find(m => m.id === state.mood);
   document.getElementById("mood-games").innerHTML = GAMES.filter(g => matches(g, mood.rule)).slice(0, 4).map(g => `
-    <a class="wide" href="#">
+    <a class="wide" href="game.html">
       <img class="wide__img" src="${img(g.appId, "library_hero.jpg")}" alt="">
       <span class="wide__scrim"></span>
       <span class="wide__text"><span class="wide__title">${esc(g.name)}</span><span class="wide__sub">${esc([g.genre, ...g.modes].join(" · "))}</span></span>

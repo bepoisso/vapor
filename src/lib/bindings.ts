@@ -8,10 +8,31 @@ import * as __TAURI_EVENT from "@tauri-apps/api/event";
 /** Commands */
 export const commands = {
 	appInfo: () => __TAURI_INVOKE<AppInfo>("app_info"),
-	deleteShelf: (id: string) => __TAURI_INVOKE<SmartShelf[]>("delete_shelf", { id }),
+	/**  Opens the game's folder in the file explorer. */
+	browseGameFiles: (appId: number) => __TAURI_INVOKE<null>("browse_game_files", { appId }),
+	/**  Deletes a shelf (Favorites can only be hidden). Steam collections are never touched. */
+	deleteShelf: (id: string) => __TAURI_INVOKE<Shelf[]>("delete_shelf", { id }),
+	gameAction: (appId: number, action: GameAction) => __TAURI_INVOKE<null>("game_action", { appId, action }),
 	/**
-	 *  Installed games. Served from Vapor's cache; a background scan emits `LibraryUpdated` if
-	 *  anything changed.
+	 *  Everything the game page shows at once (the library's data plus local facts). `null` when
+	 *  the game is not in the library.
+	 */
+	getGame: (appId: number) => __TAURI_INVOKE<GameDetail | null>("get_game", { appId }),
+	/**
+	 *  The game's achievements with names, icons and rarity. `null` without an API key or for
+	 *  games without achievements.
+	 */
+	getGameAchievements: (appId: number) => __TAURI_INVOKE<AchievementList | null>("get_game_achievements", { appId }),
+	/**  The developer's latest announcements for the game. */
+	getGameNews: (appId: number) => __TAURI_INVOKE<NewsItem[]>("get_game_news", { appId }),
+	/**
+	 *  Friends who play or own the game, and their recent achievements in it. `null` without an
+	 *  API key or a visible friends list. More may follow through `SocialUpdated`.
+	 */
+	getGameSocial: (appId: number) => __TAURI_INVOKE<GameSocial | null>("get_game_social", { appId }),
+	/**
+	 *  The library's games (hidden ones left out). Served from Vapor's cache; a background scan
+	 *  emits `LibraryUpdated` if anything changed.
 	 */
 	getLibrary: () => __TAURI_INVOKE<Game[]>("get_library"),
 	/**  The Steam account whose library is shown. */
@@ -19,19 +40,27 @@ export const commands = {
 	/**  The game Steam reports as running, if any. Changes arrive as `RunningGameChanged` events. */
 	getRunningGame: () => __TAURI_INVOKE<number | null>("get_running_game"),
 	getSettings: () => __TAURI_INVOKE<SettingsView>("get_settings"),
+	/**  Adds the account's Steam collections as read-only shelves, hidden until the user shows them. */
+	importSteamCollections: () => __TAURI_INVOKE<Shelf[]>("import_steam_collections"),
 	/**  Asks Steam to install a game. Steam shows its own install dialog (drive, size). */
 	installGame: (appId: number) => __TAURI_INVOKE<null>("install_game", { appId }),
 	/**  Asks Steam to launch a game (starting Steam silently in the tray if needed). */
 	launchGame: (appId: number) => __TAURI_INVOKE<null>("launch_game", { appId }),
-	/**  The account's Steam collections, read-only. */
-	listCollections: () => __TAURI_INVOKE<SteamCollection[]>("list_collections"),
-	listShelves: () => __TAURI_INVOKE<SmartShelf[]>("list_shelves"),
+	/**  Games the user hid from the library. */
+	listHiddenGames: () => __TAURI_INVOKE<HiddenGame[]>("list_hidden_games"),
+	/**  Every shelf, in order (smart, Favorites, imported Steam collections). */
+	listShelves: () => __TAURI_INVOKE<Shelf[]>("list_shelves"),
 	/**  Opens Steam's API key page in the default browser. */
 	openApiKeyPage: () => __TAURI_INVOKE<null>("open_api_key_page"),
+	/**  Opens a link from a news post in the default browser (`http` and `https` only). */
+	openLink: (url: string) => __TAURI_INVOKE<null>("open_link", { url }),
+	/**  Opens a news post on Steam. */
+	openNews: (appId: number, gid: string) => __TAURI_INVOKE<null>("open_news", { appId, gid }),
+	openSteamPage: (appId: number, page: SteamPage) => __TAURI_INVOKE<null>("open_steam_page", { appId, page }),
 	/**  Deletes the key from the keychain and forgets the data fetched with it. */
 	removeApiKey: () => __TAURI_INVOKE<SettingsView>("remove_api_key"),
 	/**  Puts the shelves in the order of `ids`. */
-	reorderShelves: (ids: string[]) => __TAURI_INVOKE<SmartShelf[]>("reorder_shelves", { ids }),
+	reorderShelves: (ids: string[]) => __TAURI_INVOKE<Shelf[]>("reorder_shelves", { ids }),
 	/**  Receives the frontend's startup marks (see `startup.rs`). No-op unless tracing is enabled. */
 	reportStartup: (marks: FrontendMarks) => __TAURI_INVOKE<null>("report_startup", { marks }),
 	/**
@@ -39,12 +68,19 @@ export const commands = {
 	 *  keychain. A rejected key is not stored.
 	 */
 	saveApiKey: (key: string) => __TAURI_INVOKE<SettingsView>("save_api_key", { key }),
-	/**  Creates (empty `id`) or updates a smart shelf. Returns every shelf, in order. */
-	saveShelf: (shelf: SmartShelf) => __TAURI_INVOKE<SmartShelf[]>("save_shelf", { shelf }),
+	/**  Creates (empty `id`, a smart shelf) or updates a shelf's settings. Returns every shelf. */
+	saveShelf: (shelf: Shelf) => __TAURI_INVOKE<Shelf[]>("save_shelf", { shelf }),
 	/**  `null` returns to the most recent login. */
 	setAccount: (steamId: string | null) => __TAURI_INVOKE<SettingsView>("set_account", { steamId }),
+	setFavorite: (appId: number, favorite: boolean) => __TAURI_INVOKE<null>("set_favorite", { appId, favorite }),
+	/**  Saves the user's genre, modes and vibe tags for a game (kept as edits on top of the Store's). */
+	setGameClassification: (appId: number, genre: string | null, modes: Mode[], tags: string[]) => __TAURI_INVOKE<null>("set_game_classification", { appId, genre, modes, tags }),
 	/**  Saves the user's vibe tags for a game (kept as edits on top of the mapped tags). */
 	setGameTags: (appId: number, tags: string[]) => __TAURI_INVOKE<null>("set_game_tags", { appId, tags }),
+	/**  Hides a game from the library (Settings lists hidden games). */
+	setHidden: (appId: number, hidden: boolean) => __TAURI_INVOKE<null>("set_hidden", { appId, hidden }),
+	/**  Personal notes for a game, kept on this computer only. */
+	setNotes: (appId: number, notes: string) => __TAURI_INVOKE<null>("set_notes", { appId, notes }),
 	/**  `null` returns to the detected Steam folder. */
 	setSteamPath: (path: string | null) => __TAURI_INVOKE<SettingsView>("set_steam_path", { path }),
 	/**
@@ -52,19 +88,66 @@ export const commands = {
 	 *  also forgets the details fetched so far.
 	 */
 	setStoreEnrichment: (enabled: boolean) => __TAURI_INVOKE<SettingsView>("set_store_enrichment", { enabled }),
+	/**  Ends the running game's processes (the UI asks for confirmation first). */
+	stopGame: (appId: number) => __TAURI_INVOKE<null>("stop_game", { appId }),
 };
 
 /** Events */
 export const events = {
 	libraryUpdated: makeEvent<LibraryUpdated, LibraryUpdated>("library-updated"),
 	runningGameChanged: makeEvent<RunningGameChanged, RunningGameChanged>("running-game-changed"),
+	socialUpdated: makeEvent<SocialUpdated, SocialUpdated>("social-updated"),
 };
 
 /* Types */
+export type Achievement = {
+	apiName: string,
+	name: string,
+	description: string | null,
+	/**  Color icon (`vapor` URL). */
+	icon: string | null,
+	/**  Grayed icon, for locked achievements. */
+	iconGray: string | null,
+	hidden: boolean,
+	unlocked: boolean,
+	/**  ISO 8601. */
+	unlockedAt: string | null,
+	/**  Share of all players who unlocked it. */
+	globalPercent: number | null,
+};
+
+export type AchievementList = {
+	unlocked: number,
+	total: number,
+	/**  The most attainable locked achievement (see `achievements::next_up`). */
+	next: Achievement | null,
+	/**  Every achievement, in the game's order. Empty when only the counts are known. */
+	items: Achievement[],
+};
+
 export type Achievements = {
 	unlocked: number,
 	total: number,
 };
+
+export type ActivityAchievement = {
+	name: string | null,
+	icon: string | null,
+	hidden: boolean,
+};
+
+export type ActivityItem = {
+	/**  ISO 8601 date-time of the latest event in the group. */
+	date: string,
+	kind: ActivityKind,
+	friend: string,
+	friendAvatar: string | null,
+	count: number,
+	/**  Up to two achievements, for the mini tiles. */
+	items: ActivityAchievement[],
+};
+
+export type ActivityKind = "friend_achievements";
 
 /**  Static information about the running build. */
 export type AppInfo = {
@@ -80,18 +163,38 @@ export type CommandError = {
 	message: string,
 };
 
+/**
+ *  Set fields (genre, modes, tags) pass when the game has ANY of `values`; the other fields use
+ *  `op` and `value`. A condition with nothing set is ignored.
+ */
 export type Condition = {
 	field: Field,
-	op: Op,
-	value: ConditionValue,
+	values?: string[],
+	op?: Op | null,
+	value?: ConditionValue | null,
 };
 
-export type ConditionValue = boolean | number | null | string;
+export type ConditionValue = boolean | number | null;
 
 /**  What kind of failure, so the UI can offer the right way out (e.g. "Open Settings"). */
 export type ErrorKind = "steamNotFound" | "invalidApiKey" | "network" | "other";
 
-export type Field = "genre" | "modes" | "tags" | "installed" | "playtimeMinutes" | "lastPlayed" | "achievementsPct";
+/**  What a rule condition looks at (`docs/SMART_SHELVES_SPEC.md` §0). */
+export type Field = "genre" | "modes" | "tags" | 
+/**  Hours. */
+"playtime" | "lastPlayed" | "installed" | "achievementsPct";
+
+export type FriendOnGame = {
+	/**  SteamID64 as a string (too large for a JavaScript number). */
+	steamId: string,
+	personaName: string,
+	avatar: string | null,
+	/**  Minutes over the last two weeks. */
+	recentPlaytimeMinutes: number | null,
+	status: FriendStatus,
+};
+
+export type FriendStatus = "in_game" | "played_recently" | "owns";
 
 /**  Marks measured by the frontend, in ms relative to `navigation_start` (`performance.timeOrigin`). */
 export type FrontendMarks = {
@@ -126,6 +229,22 @@ export type Game = {
 	images: GameImages,
 };
 
+/**  What the game page's settings menu asks Steam to do. */
+export type GameAction = "properties" | "validate" | "uninstall";
+
+/**  What the page shows at once: the library's `Game` plus local facts. */
+export type GameDetail = {
+	/**  Main developer, from the Store details (opt-in). `null` when unknown. */
+	developer: string | null,
+	sizeOnDiskBytes: number | null,
+	favorite: boolean,
+	/**  Hidden from the library by the user. */
+	hidden: boolean,
+	notes: string,
+	/**  Whether Vapor found the game's folder ("Browse local files", "Stop"). */
+	hasInstallDir: boolean,
+} & Game;
+
 /**  URLs served by the `vapor` protocol (see `images.rs`). `null` when the art does not exist. */
 export type GameImages = {
 	/**  Cover thumbnail, sized for shelves. */
@@ -140,12 +259,50 @@ export type GameImages = {
 	logo: string | null,
 };
 
+export type GameSocial = {
+	/**  Friends who play or own the game, in-game first. */
+	friends: FriendOnGame[],
+	/**  Friend events for this game, newest first. */
+	activity: ActivityItem[],
+	/**  Still fetching friends' games or achievements; a `SocialUpdated` event follows. */
+	loading: boolean,
+};
+
+export type HiddenGame = {
+	appId: number,
+	name: string,
+};
+
 /**  Emitted when the library changed after a background scan; the UI reloads it. */
 export type LibraryUpdated = null;
 
+export type Match = 
+/**  Every condition (AND). */
+"all" | 
+/**  At least one condition (OR). */
+"any";
+
 export type Mode = "Solo" | "Coop" | "PvP";
 
-export type Op = "includes" | "eq" | "lt" | "gt" | "olderThanDays";
+export type NewsBlock = { type: "heading"; text: string } | { type: "paragraph"; spans: Span[] } | { type: "listItem"; spans: Span[] } | 
+/**  `src` is a `vapor://` URL once the image is resolved (see `game::news`). */
+{ type: "image"; src: string };
+
+export type NewsItem = {
+	gid: string,
+	/**  ISO 8601. */
+	date: string,
+	title: string,
+	excerpt: string,
+	/**  The first picture of the post, as a thumbnail (`vapor` URL). */
+	image: string | null,
+	body: NewsBlock[],
+	/**  Whether the post can be opened on Steam. */
+	hasUrl: boolean,
+};
+
+/**  Comparison of the number, date and yes/no fields. */
+export type Op = "gt" | "lt" | "olderThanDays" | "is";
 
 /**  The Steam account whose library is shown. */
 export type Profile = {
@@ -153,16 +310,10 @@ export type Profile = {
 	avatar: string | null,
 };
 
-/**
- *  `all` = AND, `any` = OR; both may be set. Groups can nest, so a facet selection like
- *  (Platformer OR RPG) AND (Coop) is expressible. Deviation from the spec, see DECISIONS.md.
- */
 export type Rule = {
-	all?: RuleNode[],
-	any?: RuleNode[],
+	match: Match,
+	conditions?: Condition[],
 };
-
-export type RuleNode = Condition | Rule;
 
 /**  Emitted when the game Steam reports as running changes (`null`: none). */
 export type RunningGameChanged = {
@@ -190,17 +341,54 @@ export type SettingsView = {
 	storeGames: number | null,
 };
 
-export type SmartShelf = {
+/**  A row of the library: smart (rule), manual (Favorites) or imported from Steam. */
+export type Shelf = {
 	id: string,
-	title: string,
-	rule: Rule,
-	order: number,
-	pinned: boolean,
+	name: string,
+	kind: ShelfKind,
+	/**  Smart shelves only. */
+	rule?: Rule | null,
 	/**
-	 *  A default shelf the user hasn't edited: hidden when nothing matches. The user's own
-	 *  shelves always show, so a new one never disappears before it can be edited.
+	 *  Manual and Steam shelves: filled in when listed (Favorites from the favorite toggles,
+	 *  Steam shelves from the collection). `null` when unknown (collection not found).
+	 */
+	appIds?: number[] | null,
+	steamCollectionId?: string | null,
+	/**  Shown on the library page. */
+	visible: boolean,
+	/**  Pinned shelves come first, in their own order. */
+	pinned: boolean,
+	order: number,
+	/**  Also a pill in "In the mood for…". */
+	showAsMood?: boolean,
+	hideNotInstalled?: boolean,
+	/**  ISO 8601. */
+	createdAt?: string,
+	updatedAt?: string,
+	/**
+	 *  A default shelf the user hasn't edited: hidden in the library when nothing matches. The
+	 *  user's own shelves always show, so a new one never disappears before it can be edited.
 	 */
 	seeded?: boolean,
+};
+
+export type ShelfKind = 
+/**  Filled by a rule. */
+"smart" | 
+/**  Hand-picked games (Favorites). */
+"manual" | 
+/**  A Steam collection, read-only. */
+"steam";
+
+/**  Emitted when friends' data changed in the background; the game page asks again. */
+export type SocialUpdated = null;
+
+export type Span = {
+	text: string,
+	/**  An `http(s)` link, opened in the browser. */
+	href: string | null,
+	bold: boolean,
+	italic: boolean,
 };
 
 /**
@@ -212,11 +400,8 @@ export type SteamAccount = {
 	personaName: string,
 };
 
-export type SteamCollection = {
-	id: string,
-	name: string,
-	appIds: number[],
-};
+/**  Steam web pages of a game, opened in the default browser until Vapor has its own webview. */
+export type SteamPage = "store" | "guides" | "discussions";
 
 /* Tauri Specta runtime */
 type EventEmit<T> = [T] extends [null] ? () => Promise<void> : (payload: T) => Promise<void>;

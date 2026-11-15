@@ -11,7 +11,7 @@ Main areas (same as Steam's top navigation):
 2. **Store** — a webview of the Steam store. *Later.*
 3. **Community** — a webview of Steam Community. *Later.*
 4. **Profile** — the user's profile (persona name in the top bar). *Later.*
-5. **Game page** — opened from any game card. *Next design iteration; not designed yet. Don't build beyond a placeholder route.*
+5. **Game page** — opened from any game card. *In scope (designed: "P1 · Classic, enriched", see `GAME_PAGE_SPEC.md`).*
 
 ## Who it's for
 PC players with medium to large Steam libraries (the author has 85 favorites) who want speed, a clean UI, and better ways to pick what to play.
@@ -30,6 +30,11 @@ Categories should not depend only on hand-made collections. The page combines th
 3. **Facet filters** — Genre / Mode / Vibe chips that filter the full library grid live, with counts. A filter combination can be saved as a smart shelf.
 
 Explicitly rejected during design: a keyboard query language with saved "views" and "group by" tabs (variant N4). Don't add it.
+
+## The game page concept (approved "P1")
+A classic, readable page: big hero with logo and Play, four stat cards (playtime, last session, achievements, friends), tabs (Overview, Achievements, News, Guides, Discussions, My notes). The Overview ties back to the library: editable tags, an "Appears in" line listing the shelves/moods that include the game, and "More like this" from the user's own library.
+
+Explored and not chosen: full-screen hero with a glass side panel (P2), a stats-heavy "journey" page (P3), and a quick-view drawer over the library (P4 — may come back later as a shortcut, not as the main page).
 
 ## Non-goals (for now)
 - Replacing Steam's download/update engine. Installs and updates are delegated to Steam.

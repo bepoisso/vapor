@@ -1,15 +1,13 @@
-import { useTranslation } from "@/i18n";
-import type { Mood, MoodId } from "../moods";
+import type { MoodOption } from "../moods";
 import styles from "./MoodModule.module.css";
 
 interface MoodPillProps {
-  mood: Mood;
+  mood: MoodOption;
   active: boolean;
-  onSelect: (id: MoodId) => void;
+  onSelect: (id: string) => void;
 }
 
 export function MoodPill({ mood, active, onSelect }: MoodPillProps) {
-  const { t } = useTranslation();
   const Icon = mood.icon;
   return (
     <button
@@ -19,7 +17,7 @@ export function MoodPill({ mood, active, onSelect }: MoodPillProps) {
       onClick={() => onSelect(mood.id)}
     >
       <Icon size={15} strokeWidth={2} aria-hidden="true" />
-      {t(`mood.moods.${mood.id}`)}
+      {mood.label}
     </button>
   );
 }

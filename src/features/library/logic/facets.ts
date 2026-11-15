@@ -1,4 +1,4 @@
-import type { Condition, Game, Mode, Rule, RuleNode } from "@/lib/bindings";
+import type { Game, Mode, Rule } from "@/lib/bindings";
 
 /**
  * Library facets. Logic: OR within a facet, AND across facets. Each chip's count is the number
@@ -97,17 +97,13 @@ export function facetCounts(games: readonly Game[], selection: FacetSelection): 
   return { genre: counts("genre"), modes: counts("modes"), tags: counts("tags") };
 }
 
-/** "Save as shelf": each facet becomes an OR group, facets are combined with AND. */
-export function selectionToRule(selection: FacetSelection): Rule {
-  const all: RuleNode[] = [];
-  for (const key of FACET_KEYS) {
-    const conditions = selection[key].map((value): Condition => ({
+/** "Save as shelf": one condition per facet with selected values (OR inside), combined with AND. */
+export function facetsToRule(selection: FacetSelection): Rule {
+  return {
+    match: "all",
+    conditions: FACET_KEYS.filter((key) => selection[key].length > 0).map((key) => ({
       field: key,
-      op: "includes",
-      value,
-    }));
-    if (conditions.length === 1 && conditions[0]) all.push(conditions[0]);
-    else if (conditions.length > 1) all.push({ any: conditions });
-  }
-  return { all };
+      values: [...selection[key]],
+    })),
+  };
 }

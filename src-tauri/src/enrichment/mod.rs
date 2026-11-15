@@ -85,15 +85,20 @@ impl Enrichment {
         }
     }
 
-    /// Apps among `app_ids` whose Store details are missing or older than a month.
+    /// Apps among `app_ids` whose Store details are missing, older than a month, or cached
+    /// before Vapor asked for developers.
     pub fn stale_store(&self, app_ids: &[AppId], now: u64) -> Vec<AppId> {
         app_ids
             .iter()
             .copied()
             .filter(|app_id| {
-                self.store
-                    .get(app_id)
-                    .is_none_or(|entry| now.saturating_sub(entry.fetched_at) > STORE_MAX_AGE_SECS)
+                self.store.get(app_id).is_none_or(|entry| {
+                    now.saturating_sub(entry.fetched_at) > STORE_MAX_AGE_SECS
+                        || entry
+                            .details
+                            .as_ref()
+                            .is_some_and(|details| details.developers.is_none())
+                })
             })
             .collect()
     }

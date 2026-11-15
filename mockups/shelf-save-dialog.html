@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vapor — Save filters as shelf (reference mockup)</title>
+<!-- REFERENCE MOCKUP (S4). Dialog opened by "Save as shelf" in the library facet box. Here the active facets are Mode=Coop and Vibe=Indie.
+     Interactive: name suggestions, "where to show" toggles, Esc / × / Cancel close (reload to reopen). -->
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shelves-common.css">
+<style>
+  .behind{padding:32px var(--page-x);display:flex;flex-direction:column;gap:16px}
+  .facets{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+  .facet{display:flex;gap:7px;align-items:center}
+  .facet__l{width:84px;font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--text-muted)}
+  .grid-10{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:14px}
+  .grid-10 img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:10px}
+  .veil{position:fixed;inset:0;background:rgba(5,5,8,.68);backdrop-filter:blur(4px)}
+  .dialog{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:600px;max-width:calc(100vw - 32px);border-radius:var(--radius-2xl);background:var(--surface);border:1px solid var(--border-strong);box-shadow:0 40px 100px rgba(0,0,0,.6);padding:26px;display:flex;flex-direction:column;gap:20px}
+  .dialog h2{margin:0;font-size:20px;font-weight:700}
+  .icon{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center}
+  .close{margin-left:auto;width:34px;height:34px;border-radius:10px;border:0;background:var(--surface-3);color:var(--text-2)}
+  .name{height:48px;padding:0 14px;border-radius:var(--radius-md);border:1px solid var(--accent);background:var(--bg);color:#fff;font:600 17px Geist;outline:none;width:100%}
+  .previews{display:flex;gap:10px}
+  .previews img,.previews .ghostcard{width:84px;aspect-ratio:2/3;object-fit:cover;border-radius:10px}
+  .ghostcard{border:1px dashed var(--border-strong);display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--text-faint);padding:6px}
+  .places{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .place{height:58px;border-radius:var(--radius-md);border:1px solid var(--border-strong);background:var(--surface-2);color:var(--text);font-weight:600;font-size:13px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:0 12px;gap:2px}
+  .place[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+  .place span{font-size:11px;font-weight:500;color:var(--text-muted)}
+</style>
+</head>
+<body>
+<section class="behind" aria-hidden="true">
+  <div style="display:flex;align-items:center;gap:14px"><h2 style="margin:0;font-size:22px;font-weight:700">Library</h2><span class="muted" id="behind-count"></span>
+    <span class="btn btn--primary" style="height:32px;font-size:12px">Save as shelf</span></div>
+  <div class="panel facets" id="facets"></div>
+  <div class="grid-10" id="behind-grid"></div>
+</section>
+
+<div class="veil" id="veil"></div>
+<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-t" id="dialog">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD43B" stroke-width="2.2" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></span>
+    <h2 id="dlg-t">Save as shelf</h2>
+    <button class="close" data-close aria-label="Close">×</button>
+  </div>
+  <label style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">Name</span><input class="name" id="name"></label>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:-8px"><span class="muted" style="font-size:12px;align-self:center;margin-right:4px">Suggestions:</span><span id="sugs" style="display:flex;gap:6px;flex-wrap:wrap"></span></div>
+  <div style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">Rule (from your filters)</span>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap" id="rule"></div></div>
+  <div style="display:flex;flex-direction:column;gap:10px"><span class="eyebrow" id="prev-title"></span><div class="previews" id="previews"></div></div>
+  <div style="display:flex;flex-direction:column;gap:10px"><span class="eyebrow">Where to show it</span><div class="places" id="places"></div></div>
+  <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn--quiet" data-close>Cancel</button><button class="btn btn--primary" data-close>Create shelf</button></div>
+</div>
+
+<script src="shelves-common.js"></script>
+<script>
+/* Active facet selection → rule: one condition per facet (values OR'ed), facets AND'ed. */
+const selection = { modes: ["Coop"], tags: ["Indie"] };
+const rule = { match: "all", conditions: Object.entries(selection).map(([field, values]) => ({ field, values })) };
+const list = GAMES.filter(g => matches(g, rule));
+const places = { library: true, mood: false, pinned: false };
+
+document.getElementById("behind-count").textContent = `${list.length} games`;
+document.getElementById("facets").innerHTML = ["genre", "modes", "tags"].map(f => `<div class="facet"><span class="facet__l">${FIELDS[f].label.toUpperCase()}</span>${FIELDS[f].values.slice(0, 6).map(v => `<span class="chip" aria-pressed="${(selection[f] || []).includes(v)}">${esc(v)}</span>`).join("")}</div>`).join("");
+document.getElementById("behind-grid").innerHTML = list.map(g => `<img src="${cover(g.appId)}" alt="">`).join("");
+
+const name = document.getElementById("name");
+const auto = Object.values(selection).flat().join(" · ");
+name.value = auto;
+document.getElementById("sugs").innerHTML = [auto, "Indies for two", "Chill co-op"].map(s => `<button class="chip" data-sug="${esc(s)}">${esc(s)}</button>`).join("");
+document.getElementById("rule").innerHTML = rule.conditions.map((c, i) => (i ? `<span class="joiner">AND</span>` : "") + `<span class="cond" style="padding-right:12px"><span class="muted">${FIELDS[c.field].label}</span>${esc(c.values.join(" or "))}</span>`).join("") +
+  `<a href="shelf-builder.html" class="muted" style="margin-left:auto;font-size:12px">Edit in detail →</a>`;
+document.getElementById("prev-title").textContent = `Preview · ${list.length} games`;
+document.getElementById("previews").innerHTML = list.slice(0, 5).map(g => `<img src="${cover(g.appId)}" alt="${esc(g.name)}">`).join("") + `<span class="ghostcard">New matching games are added automatically</span>`;
+function renderPlaces() {
+  document.getElementById("places").innerHTML = [["library", "Library", "As a row"], ["mood", "In the mood for…", "As a mood pill"], ["pinned", "Pinned", "Top of the shelves"]]
+    .map(([k, l, s]) => `<button class="place" data-place="${k}" aria-pressed="${places[k]}">${l}<span>${s}</span></button>`).join("");
+}
+renderPlaces();
+name.focus(); name.select();
+document.addEventListener("click", e => {
+  const s = e.target.closest("[data-sug]"); if (s) { name.value = s.dataset.sug; name.focus(); return; }
+  const p = e.target.closest("[data-place]"); if (p) { places[p.dataset.place] = !places[p.dataset.place]; renderPlaces(); return; }
+  if (e.target.closest("[data-close]") || e.target.id === "veil") close();
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+function close() { document.getElementById("dialog").classList.add("hidden"); document.getElementById("veil").classList.add("hidden"); }
+</script>
+</body>
+</html>

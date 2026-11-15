@@ -1,0 +1,143 @@
+/* Game page layout and the card primitives its sections share (mockups/game.html). */
+
+.page {
+  min-height: 100vh;
+  padding-bottom: 48px;
+}
+
+.card {
+  border-radius: var(--radius-wide);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stackLoose {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.label {
+  font-size: var(--fs-12);
+  color: var(--text-muted);
+}
+
+.h2 {
+  margin: 0;
+  font-size: var(--fs-18);
+  font-weight: 700;
+}
+
+/* A section title below another block in the same column. */
+.h2Spaced {
+  margin-top: 12px;
+}
+
+.eyebrow {
+  font-size: var(--fs-11);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.link {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font-size: var(--fs-13);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.link:hover {
+  color: var(--text-hover);
+}
+
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-4);
+  overflow: hidden;
+}
+
+/* Filled with `transform: scaleX()`: only transform and opacity animate. */
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transform-origin: left center;
+}
+
+/* Reserves the height of a block that is still loading (no layout shift). */
+.skeleton {
+  border-radius: var(--radius-dense);
+  background: var(--surface-2);
+  animation: breathe 1.4s var(--ease-out) infinite alternate;
+}
+
+@keyframes breathe {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.55;
+  }
+}
+
+/* Overview: two columns. */
+.cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 28px;
+  padding: 24px var(--page-x) 0;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* Only a title below another block needs the extra space. */
+.col > .h2Spaced:first-child {
+  margin-top: 0;
+}
+
+/* Other tabs. */
+.panel {
+  padding: 24px var(--page-x) 0;
+}
+
+.muted {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Not found */
+.notice {
+  max-width: 560px;
+  padding: calc(var(--topbar-height) + 2 * var(--section-gap)) var(--page-x) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.noticeTitle {
+  margin: 0;
+  font-size: var(--fs-22);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}

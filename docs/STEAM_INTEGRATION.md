@@ -54,10 +54,23 @@ Approach: **local-first** (read the Steam install on disk — fast, offline, no 
 - Web API key: an open-source app must **not** ship a shared key. Let each user paste their own key (from `https://steamcommunity.com/dev/apikey`) in Settings, stored in the OS keychain (`keyring` crate). Without a key, Vapor runs in local-only mode (installed games, local playtime, local art).
 - Privacy: some API data requires the user's "Game details" to be public unless using their own key **[verify]**.
 
-## 9. Suggested backend shape (Rust, Tauri commands)
+## 9. Game page data
+- **Achievements list:** `ISteamUserStats/GetPlayerAchievements/v1` (unlocked + unlock time) + `ISteamUserStats/GetSchemaForGame/v2` (names, descriptions, icons, hidden flag) + `ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2` (rarity, used to pick "Next up"). Cache per app; refresh after a play session ends.
+- **News:** `ISteamNews/GetNewsForApp/v2?appid=<id>&count=10&feeds=steam_community_announcements` (no key needed; **verified**: the unfiltered feed also carries press articles, some about other games). Contents are BBCode (`[img]{STEAM_CLAN_IMAGE}/…[/img]`, `{STEAM_CLAN_IMAGE}` = `https://clan.akamai.steamstatic.com/images`, **verified**) or HTML: parsed into plain blocks before rendering.
+- **Friends:** `ISteamUser/GetFriendList/v1` (needs key; friends list must be visible) then `ISteamUser/GetPlayerSummaries/v2` (`gameid` = currently playing). "Played recently / owns" for a given app needs `GetOwnedGames`/`GetRecentlyPlayedGames` per friend, which only works for friends with public game details — fetch lazily, cap the number of calls, cache for hours. **[verify privacy behavior]**
+- **Activity feed:** there is no clean public API for the Steam activity feed. v1: derive events from friends' achievements on this app (`GetPlayerAchievements` per friend, unlock times) if available, otherwise hide the Activity block.
+- **Size on disk:** `SizeOnDisk` in `appmanifest_<appid>.acf`.
+- **Developer:** Store `appdetails` with `filters=…,developers` (**verified**: `basic` does not include it).
+- **Global percentages:** `percent` is a string ("70.7") in v2 (**verified**).
+- **Settings menu actions:** `steam://validate/<appid>`, `steam://uninstall/<appid>`, open `installdir` in the OS file explorer; launch options require Steam's Properties dialog (`steam://gameproperties/<appid>` **[verify]**).
+- **Notes & user tags:** Vapor's own local store (app data dir, SQLite or JSON), keyed by appId.
+
+## 10. Suggested backend shape (Rust, Tauri commands)
 ```
 get_library() -> Vec<Game>          // merged local + API, served from Vapor's cache, refreshed in background
-get_game(app_id) -> GameDetail
+get_game(app_id) -> GameDetail     // fast part from cache, then emits game-detail-updated with achievements/friends/news
+get_achievements(app_id) / get_news(app_id)
+set_favorite(app_id, bool) / set_notes(app_id, text)
 launch(app_id) / install(app_id)
 list_shelves() / save_shelf(shelf) / delete_shelf(id)
 set_user_tags(app_id, tags)
