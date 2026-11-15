@@ -1,5 +1,7 @@
 /**
- * Visual check of the Library and Game pages against the reference mockups.
+ * Visual check of the Library, Game and smart shelves screens against the reference mockups.
+ * The shelf page compares pixel by pixel; the builder, "My shelves" and the save dialog start
+ * from different states than their mockups, so their side-by-side images are for review.
  *
  * Screenshots the real app, then the mockup in the same engine and viewport, and writes
  * side-by-side and diff images to `artifacts/compare/` (git-ignored). Windows only (WebView2).
@@ -14,9 +16,10 @@ import { DEV_URL, withApp } from "./lib/app.ts";
 
 const MOCKUP_URL = `${DEV_URL}mockups/library.html`;
 const GAME_MOCKUP_URL = `${DEV_URL}mockups/game.html`;
+const mockup = (file: string) => `${DEV_URL}mockups/${file}`;
 const OUT_DIR = "artifacts/compare";
 
-async function screenshot(page: Page, file: string): Promise<PNG> {
+async function screenshot(page: Page, file: string, fullPage = true): Promise<PNG> {
   await page.evaluate(() => document.fonts.ready);
   // Scroll through once so lazy images load.
   await page.evaluate(async () => {
@@ -27,7 +30,7 @@ async function screenshot(page: Page, file: string): Promise<PNG> {
     window.scrollTo(0, 0);
   });
   await page.waitForTimeout(400);
-  const buffer = await page.screenshot({ fullPage: true, animations: "disabled" });
+  const buffer = await page.screenshot({ fullPage, animations: "disabled" });
   writeFileSync(`${OUT_DIR}/${file}`, buffer);
   return PNG.sync.read(buffer);
 }
@@ -56,14 +59,15 @@ async function compare(
   name: string,
   mockupUrl: string,
   mockupReady: string,
+  fullPage = true,
 ): Promise<void> {
   const prefix = name === "library" ? "" : `${name}-`;
-  const appShot = await screenshot(page, `${prefix}app.png`);
+  const appShot = await screenshot(page, `${prefix}app.png`, fullPage);
   const appUrl = page.url();
 
   await page.goto(mockupUrl);
   await page.waitForSelector(mockupReady);
-  const mockShot = await screenshot(page, `${prefix}mockup.png`);
+  const mockShot = await screenshot(page, `${prefix}mockup.png`, fullPage);
   await page.goto(appUrl);
 
   const width = Math.min(appShot.width, mockShot.width);
@@ -102,6 +106,28 @@ await withApp(
     });
     await page.waitForSelector("text=More like this");
     await compare(page, "game", GAME_MOCKUP_URL, "#similar .cover");
+
+    const open = async (hash: string, ready: string) => {
+      await page.evaluate((target) => {
+        window.location.hash = target;
+      }, hash);
+      await page.waitForSelector(ready);
+    };
+    // The mockup's shelf is the default "Demanding indies" (Indie + Hard).
+    await open("#/shelf/demanding-indies", "text=Play a random one");
+    await compare(page, "shelf", mockup("shelf.html"), "#grid .cover");
+    await open("#/shelves", "text=My shelves");
+    await compare(page, "shelves-manage", mockup("shelves-manage.html"), "#list .row");
+    await open("#/shelves/new", "text=Live preview");
+    await compare(page, "shelf-builder", mockup("shelf-builder.html"), "#grid .cover");
+
+    // Save dialog: the mockup's filters are Mode = Coop and Vibe = Indie.
+    await open("#/", "#library");
+    await page.getByRole("button", { name: /^Coop, / }).click();
+    await page.getByRole("button", { name: /^Indie, / }).click();
+    await page.getByRole("button", { name: "Save as shelf" }).click();
+    await page.waitForSelector("dialog[open]");
+    await compare(page, "shelf-save", mockup("shelf-save-dialog.html"), "#dialog", false);
     console.log(`images in ${OUT_DIR}/`);
   },
   { sample: true },
