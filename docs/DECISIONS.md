@@ -127,3 +127,10 @@ Short log of decisions taken with the owner. Newest last. Each entry: what, why,
 - **Pinned shelves come first**; moves (arrows, Alt+↑/↓, drag and drop) stay inside the pinned or unpinned group.
 - **Screens**: shelf page `/shelf/<id>` (rule edits apply and save at once, with Undo), full-page builder `/shelves/new` and `/shelves/<id>/edit` (replaces the editor dialog), "My shelves" `/shelves`, and the "Save as shelf" dialog. All lazy-loaded.
 - "Recently added" is not offered as a sort: Vapor has no acquisition dates.
+
+## 2026-11-16 — Phase 8: distribution (0.1.0)
+- **Release workflow** (`.github/workflows/release.yml`): a `v*` tag builds on `windows-latest` with `tauri-action` and opens a **draft** release (NSIS `.exe`, MSI, `.sig` files, `latest.json`). The owner publishes it by hand; the workflow fails if the tag and the `tauri.conf.json` version differ. Steps in `docs/RELEASING.md`.
+- **Installer**: NSIS per-user install (no admin rights), MSI also built. WebView2 is not embedded: the installer downloads Microsoft's bootstrapper only when WebView2 is missing (Windows 11 has it), which keeps the installer small. Measured: NSIS setup 3.9 MiB, MSI 5.5 MiB (budget 15 MB).
+- **Auto-update**: `tauri-plugin-updater`, used from Rust only (`updates.rs`: `check_for_update`, `install_update`), no frontend permission. Endpoint: `releases/latest/download/latest.json` on GitHub, so only **published** releases reach users. Updates must be signed with Vapor's key (public key in `tauri.conf.json`, private key and password as repository secrets, generated and kept by the owner). Release builds check once, 8 s after startup, and offer the update in a toast; Settings → Updates checks on demand and installs (passive installer, then Vapor restarts). Dev builds never check by themselves.
+- **No code signing yet**: SmartScreen warns on first launch; the README and the release notes say how to proceed. Possible later with a certificate or Azure Trusted Signing.
+- The sample library keeps its shelves apart too (`<config dir>/sample/`), so `pnpm compare:mockup` no longer reads the owner's real shelves. The comparison now covers the four shelves screens.

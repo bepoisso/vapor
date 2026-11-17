@@ -77,6 +77,11 @@ export async function withApp(
     await run(page);
   } finally {
     await browser?.close().catch(() => undefined);
-    if (app.pid) execSync(`taskkill /pid ${app.pid} /T /F`, { stdio: "ignore" });
+    // The app may already be gone; a failed kill must not hide the error that got us here.
+    try {
+      if (app.pid) execSync(`taskkill /pid ${app.pid} /T /F`, { stdio: "ignore" });
+    } catch {
+      // Nothing left to stop.
+    }
   }
 }

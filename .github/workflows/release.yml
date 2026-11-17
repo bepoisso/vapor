@@ -1,0 +1,59 @@
+name: Release
+
+# Pushing a version tag (v0.1.0) builds the Windows installers and opens a *draft* GitHub
+# release with them and the signed updater manifest (latest.json). The owner reviews the
+# draft and publishes it; published releases are what installed copies update to.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and draft the release (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: The tag matches the app version
+        shell: bash
+        run: |
+          version=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match tauri.conf.json version $version" >&2
+            exit 1
+          fi
+
+      - name: Build, sign the updater artifacts and draft the release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Updater signing key (`pnpm tauri signer generate`), stored as repository secrets.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Vapor ${{ github.ref_name }}
+          releaseBody: |
+            See [CHANGELOG.md](https://github.com/bepoisso/vapor/blob/${{ github.ref_name }}/CHANGELOG.md) for what's new.
+
+            **Install:** download `Vapor_*_x64-setup.exe` and run it (no admin rights needed). Windows SmartScreen may warn on first launch because the installer isn't code-signed yet: choose "More info", then "Run anyway".
+
+            **Requires Steam:** Vapor replaces Steam's interface, not the Steam client. Steam must be installed; Vapor starts it silently in the tray when you launch a game.
+          releaseDraft: true
+          prerelease: false
+          includeUpdaterJson: true

@@ -519,5 +519,17 @@
     "create": "Create shelf",
     "created": "Shelf created",
     "view": "View"
+  },
+  "updates": {
+    "title": "Updates",
+    "description": "Vapor updates itself from its GitHub releases.",
+    "version": "You have Vapor {{version}}. Updates come from Vapor’s GitHub releases and are checked against Vapor’s signing key.",
+    "check": "Check for updates",
+    "checking": "Checking…",
+    "upToDate": "Vapor is up to date.",
+    "available": "Vapor {{version}} is available.",
+    "install": "Install and restart",
+    "installing": "Downloading and installing… Vapor restarts when it’s done.",
+    "toast": "Vapor {{version}} is available"
   }
 }

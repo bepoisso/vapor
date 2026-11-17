@@ -10,6 +10,10 @@ export const commands = {
 	appInfo: () => __TAURI_INVOKE<AppInfo>("app_info"),
 	/**  Opens the game's folder in the file explorer. */
 	browseGameFiles: (appId: number) => __TAURI_INVOKE<null>("browse_game_files", { appId }),
+	/**  Asks GitHub Releases for a newer version. `null` when Vapor is up to date. */
+	checkForUpdate: () => __TAURI_INVOKE<UpdateInfo | null>("check_for_update"),
+	/**  Downloads and installs the update found by the last check, then restarts Vapor. */
+	installUpdate: () => __TAURI_INVOKE<null>("install_update"),
 	/**  Deletes a shelf (Favorites can only be hidden). Steam collections are never touched. */
 	deleteShelf: (id: string) => __TAURI_INVOKE<Shelf[]>("delete_shelf", { id }),
 	gameAction: (appId: number, action: GameAction) => __TAURI_INVOKE<null>("game_action", { appId, action }),
@@ -402,6 +406,16 @@ export type SteamAccount = {
 
 /**  Steam web pages of a game, opened in the default browser until Vapor has its own webview. */
 export type SteamPage = "store" | "guides" | "discussions";
+
+/**  A newer version, as the release describes it. */
+export type UpdateInfo = {
+	version: string,
+	currentVersion: string,
+	/**  Release notes (Markdown), if any. */
+	notes: string | null,
+	/**  ISO 8601 publication date, if known. */
+	date: string | null,
+};
 
 /* Tauri Specta runtime */
 type EventEmit<T> = [T] extends [null] ? () => Promise<void> : (payload: T) => Promise<void>;
