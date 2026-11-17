@@ -29,7 +29,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi"],
+    "targets": [
+      "nsis",
+      "msi"
+    ],
     "shortDescription": "A fast, open-source desktop client for your Steam library.",
     "copyright": "Copyright (c) 2026 Benjamin Poisson. MIT License.",
     "category": "Game",
@@ -57,8 +60,10 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "REPLACE_WITH_THE_PUBLIC_KEY_FROM_tauri_signer_generate",
-      "endpoints": ["https://github.com/bepoisso/vapor/releases/latest/download/latest.json"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDk4NUY2RkYzQThDNzgwQkQKUldTOWdNZW84MjlmbU1JZUxuUUhLZk9ScExWdWhQdlF1cTl5UXZjemJqeVZkcndjMFBKeXAzUHYK",
+      "endpoints": [
+        "https://github.com/bepoisso/vapor/releases/latest/download/latest.json"
+      ],
       "windows": {
         "installMode": "passive"
       }
