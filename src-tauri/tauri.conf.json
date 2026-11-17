@@ -57,7 +57,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDk4NUY2RkYzQThDNzgwQkQKUldTOWdNZW84MjlmbU1JZUxuUUhLZk9ScExWdWhQdlF1cTl5UXZjemJqeVZkcndjMFBKeXAzUHYK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQyNEIzNDY5MzM3Q0ZGMzUKUldRMS8zd3phVFJMUXE5VG1hOHBHUHZRaCt2QlcwOS9QLy9pTzR0bkpVcHFFa1FBaUJyTjBzRDEK",
       "endpoints": ["https://github.com/bepoisso/vapor/releases/latest/download/latest.json"],
       "windows": {
         "installMode": "passive"
