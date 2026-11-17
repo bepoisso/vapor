@@ -4,18 +4,18 @@ Releases are built by GitHub Actions (`.github/workflows/release.yml`) from a ve
 
 ## One-time setup: the updater signing key
 
-Installed copies only accept updates signed with Vapor's key. Generate it once, on the owner's machine:
+Installed copies only accept updates signed with Vapor's key. Generate it once, on the owner's machine. In PowerShell (`~` is not expanded for other programs, so use `$HOME`):
 
-```sh
-pnpm tauri signer generate -w ~/.tauri/vapor.key
+```powershell
+pnpm tauri signer generate -w "$HOME\.tauri\vapor.key"
 ```
 
-It asks for a password and writes `~/.tauri/vapor.key` (private) and `~/.tauri/vapor.key.pub` (public).
+It asks for a password and writes `vapor.key` (private) and `vapor.key.pub` (public) in `%USERPROFILE%\.tauri\`. Keep them out of the repository.
 
 1. Put the content of `vapor.key.pub` in `src-tauri/tauri.conf.json` → `plugins.updater.pubkey` and commit it (it is public).
-2. Add two repository secrets (GitHub → Settings → Secrets and variables → Actions), or with the GitHub CLI:
-   ```sh
-   gh secret set TAURI_SIGNING_PRIVATE_KEY < ~/.tauri/vapor.key
+2. Add two repository secrets (GitHub → Settings → Secrets and variables → Actions), or with the GitHub CLI in PowerShell (`gh` asks for the password):
+   ```powershell
+   Get-Content -Raw "$HOME\.tauri\vapor.key" | gh secret set TAURI_SIGNING_PRIVATE_KEY
    gh secret set TAURI_SIGNING_PRIVATE_KEY_PASSWORD
    ```
 3. Back up the private key and its password somewhere safe. **If they are lost, installed copies can no longer be updated** (users would have to reinstall by hand).
